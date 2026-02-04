@@ -7,62 +7,46 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- VISUAL CORE (Pura Purana CSS) --- */
-        :root {
-            --bg: #050505; --card: #111; --text: #fff; --accent: #00ffcc;
-            --glass: rgba(10, 10, 10, 0.85); --border: 1px solid rgba(255,255,255,0.08);
-        }
+        /* (Saara Purana CSS) */
+        :root { --bg: #050505; --card: #111; --text: #fff; --accent: #00ffcc; --border: 1px solid rgba(255,255,255,0.08); }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
 
         /* --- LOGIN OVERLAY --- */
-        #login-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center;
-        }
-        .login-card {
-            background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--accent);
-            text-align: center; width: 85%; max-width: 350px;
-        }
-        .login-input {
-            width: 100%; padding: 12px; margin: 15px 0; border-radius: 8px; 
-            background: #222; color: #fff; border: 1px solid #444; box-sizing: border-box;
-        }
-        .login-btn {
-            background: var(--accent); color: #000; border: none; padding: 12px 25px;
-            border-radius: 25px; font-weight: bold; width: 100%; cursor: pointer;
-        }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--accent); text-align: center; width: 85%; max-width: 350px; }
+        .login-input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 8px; background: #222; color: #fff; border: 1px solid #444; box-sizing: border-box; }
+        .login-btn { background: var(--accent); color: #000; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; width: 100%; cursor: pointer; }
 
-        /* --- MAIN UI (Chhipa hua rahega) --- */
+        /* --- APP UI (Hidden until login) --- */
         #main-wrapper { display: none; }
-
-        /* (Baaki aapka saara grid aur card CSS yahan paste rahega) */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; padding: 20px; }
-        .card { background: var(--card); border-radius: 18px; padding: 15px; text-align: center; border: var(--border); }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
         <div class="login-card">
-            <h2 style="color:var(--accent)">BaseKey Access</h2>
+            <h2 style="color:var(--accent)">BaseKey Login</h2>
             <div id="step-1">
-                <input type="email" id="email-in" class="login-input" placeholder="Enter Registered Email">
+                <input type="email" id="email-in" class="login-input" placeholder="Enter Email">
                 <button onclick="requestOTP()" id="send-btn" class="login-btn">Send OTP</button>
             </div>
             <div id="step-2" style="display:none;">
-                <input type="number" id="otp-in" class="login-input" placeholder="Enter 6-Digit OTP">
-                <button onclick="confirmOTP()" class="login-btn">Verify & Access</button>
+                <input type="number" id="otp-in" class="login-input" placeholder="Enter 6-Digit Code">
+                <button onclick="confirmOTP()" class="login-btn">Verify & Enter</button>
             </div>
         </div>
     </div>
 
     <div id="main-wrapper">
-        <header style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: var(--glass);">
+        <header style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(10,10,10,0.85);">
             <div class="brand"><i class="fas fa-infinity"></i> BaseKey OS</div>
-            <i class="fas fa-sign-out-alt" onclick="exitSession()" style="color:red; cursor:pointer;"></i>
+            <i class="fas fa-sign-out-alt" onclick="logout()" style="color:red; cursor:pointer;"></i>
         </header>
 
-        <div class="grid" id="app-grid"></div>
+        <div style="padding: 20px;">
+            <div class="grid" id="app-grid"></div>
+        </div>
     </div>
 
     <script>
@@ -70,12 +54,13 @@
 
         async function requestOTP() {
             const email = document.getElementById('email-in').value;
-            if(!email) return alert("Email empty hai bhai!");
+            if(!email) return alert("Email dalo bhai!");
             
             document.getElementById('send-btn').innerText = "Sending...";
             correctOTP = Math.floor(100000 + Math.random() * 900000);
 
             try {
+                // Yahan '/api/send' tabhi chalega jab folder structure sahi ho
                 const res = await fetch('/api/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -85,51 +70,48 @@
                 if(res.ok) {
                     document.getElementById('step-1').style.display = 'none';
                     document.getElementById('step-2').style.display = 'block';
-                    alert("OTP sent successfully!");
+                    alert("OTP chala gaya!");
                 } else {
-                    alert("Error: Vercel logs check karo!");
+                    alert("Backend Error! Vercel Variables check karo.");
                 }
-            } catch (err) { alert("Fetch failed: " + err.message); }
+            } catch (err) { alert("Error: Server tak baat nahi pahuchi!"); }
             document.getElementById('send-btn').innerText = "Send OTP";
         }
 
         function confirmOTP() {
             const userOTP = document.getElementById('otp-in').value;
             if(userOTP == correctOTP) {
-                localStorage.setItem('auth_status', 'active');
-                unlockOS();
+                localStorage.setItem('auth', 'true');
+                unlockApp();
             } else { alert("Wrong OTP!"); }
         }
 
-        function unlockOS() {
+        function unlockApp() {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('main-wrapper').style.display = 'block';
-            loadApps();
+            loadMyApps();
         }
 
-        function exitSession() {
-            localStorage.removeItem('auth_status');
-            location.reload();
-        }
+        function logout() { localStorage.removeItem('auth'); location.reload(); }
 
-        // --- APPS DATA (Aapka wala list) ---
-        const myApps = [
+        // --- APPS LIST (Aapki uploaded index.html wali list) ---
+        const apps = [
             { n: "Science Lab", u: "alchemy.html", i: "🧪" },
             { n: "Solar Explorer", u: "globe.html", i: "🌍" },
-            { n: "Math Solver", u: "math.html", i: "📐" }
+            { n: "Math Solver", u: "math.html", i: "📐" },
+            { n: "Network Node", u: "cyber.html", i: "💻" }
+            // Aap apni baaki list yahan add kar lena
         ];
 
-        function loadApps() {
-            const grid = document.getElementById('app-grid');
-            grid.innerHTML = myApps.map(app => `
-                <div class="card">
-                    <div style="font-size:30px;">${app.i}</div>
-                    <h4>${app.n}</h4>
-                </div>
-            `).join('');
+        function loadMyApps() {
+            document.getElementById('app-grid').innerHTML = apps.map(a => `
+                <div class="card" onclick="window.location.href='${a.u}'" style="background:#111; padding:15px; border-radius:18px; text-align:center; border:var(--border);">
+                    <div style="font-size:30px;">${a.i}</div>
+                    <div style="font-size:13px; font-weight:700;">${a.n}</div>
+                </div>`).join('');
         }
 
-        window.onload = () => { if(localStorage.getItem('auth_status')) unlockOS(); };
+        window.onload = () => { if(localStorage.getItem('auth')) unlockApp(); };
     </script>
 </body>
 </html>
