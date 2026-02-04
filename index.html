@@ -3,115 +3,386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="description" content="BaseKey Infinity - An advanced educational Web OS simulation featuring science modules, math solvers, network visualization, and productivity tools. Built for students and developers.">
+    <meta name="keywords" content="web os, educational tools, science simulation, math solver, solar system 3d, network monitor, portfolio project, javascript experiments, basekey">
+    <meta name="author" content="Ayush Raj">
+    <meta name="theme-color" content="#00ffcc">
+    
     <title>Infinity Key - Educational OS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* (Saara Purana CSS) */
-        :root { --bg: #050505; --card: #111; --text: #fff; --accent: #00ffcc; --border: 1px solid rgba(255,255,255,0.08); }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        /* --- VISUAL CORE (Glass & Neon) --- */
+        :root {
+            --bg: #050505; --card: #111; --text: #fff; --accent: #00ffcc;
+            --glass: rgba(10, 10, 10, 0.85); --border: 1px solid rgba(255,255,255,0.08);
+        }
+        [data-theme="light"] {
+            --bg: #f2f2f2; --card: #fff; --text: #000; --accent: #007bff;
+            --glass: rgba(255, 255, 255, 0.95); --border: 1px solid rgba(0,0,0,0.05);
+        }
 
-        /* --- LOGIN OVERLAY --- */
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--accent); text-align: center; width: 85%; max-width: 350px; }
-        .login-input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 8px; background: #222; color: #fff; border: 1px solid #444; box-sizing: border-box; }
-        .login-btn { background: var(--accent); color: #000; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; width: 100%; cursor: pointer; }
+        body {
+            background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0; transition: background 0.3s; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            top: 0 !important; position: static !important;
+        }
 
-        /* --- APP UI (Hidden until login) --- */
-        #main-wrapper { display: none; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; padding: 20px; }
+        /* --- ANTI-GOOGLE POPUP (Clean UI) --- */
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, #google_translate_element, 
+        .goog-tooltip, .goog-te-balloon-frame, #goog-gt-tt { display: none !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        body { top: 0px !important; }
+
+        /* --- HEADER --- */
+        header {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: var(--glass); backdrop-filter: blur(20px);
+            border-bottom: var(--border); height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; box-sizing: border-box;
+        }
+
+        .brand { font-size: 18px; font-weight: 900; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        .brand i { color: var(--accent); animation: spin 10s linear infinite; }
+        .header-controls { display: flex; align-items: center; gap: 15px; }
+        .status-pill { font-size: 10px; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 12px; }
+        #theme-btn { font-size: 20px; cursor: pointer; padding: 5px; }
+
+        /* --- SEARCH --- */
+        .search-wrapper { margin-top: 80px; padding: 0 15px; position: relative; }
+        .search-box {
+            width: 100%; background: var(--card); border: var(--border);
+            padding: 15px 45px 15px 20px; border-radius: 50px; box-sizing: border-box;
+            color: var(--text); font-size: 16px; outline: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .mic-icon { position: absolute; right: 30px; top: 15px; color: var(--accent); }
+
+        /* --- NEW: VIDEO API BUTTONS & STYLES --- */
+        .api-bar {
+            display: flex; gap: 10px; padding: 10px 15px; overflow-x: auto;
+            scrollbar-width: none; justify-content: center;
+        }
+        .api-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
+            color: var(--text); padding: 8px 15px; border-radius: 20px;
+            font-size: 11px; cursor: pointer; white-space: nowrap;
+            transition: 0.2s; display: flex; align-items: center; gap: 5px;
+        }
+        .api-btn:active { transform: scale(0.95); background: var(--accent); color: #000; }
+        
+        /* --- NEW: VIDEO MODAL (WINDOW) --- */
+        .video-modal {
+            position: fixed; top: 70px; left: 5%; width: 90%; height: 80vh;
+            background: var(--bg); border: var(--border); border-radius: 20px;
+            z-index: 2000; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: none; flex-direction: column; overflow: hidden;
+            backdrop-filter: blur(15px);
+        }
+        .modal-header {
+            padding: 15px; border-bottom: var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card);
+        }
+        .close-btn { color: #ff4757; font-size: 20px; cursor: pointer; }
+        .video-results {
+            padding: 15px; overflow-y: auto; display: grid; gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+        .vid-card {
+            background: var(--card); border-radius: 10px; overflow: hidden;
+            border: var(--border); cursor: pointer;
+        }
+        .vid-thumb { width: 100%; height: 140px; object-fit: cover; background: #000; }
+        .vid-info { padding: 10px; }
+        .vid-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .vid-source { font-size: 9px; color: var(--accent); opacity: 0.8; }
+
+        /* --- APP GRID --- */
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+            gap: 12px; padding: 20px 15px 40px 15px;
+        }
+
+        .card {
+            background: var(--card); border-radius: 18px; padding: 15px;
+            text-decoration: none; color: var(--text); border: var(--border);
+            position: relative; overflow: hidden; transition: transform 0.1s;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .card:active { transform: scale(0.96); }
+        .icon-box { font-size: 32px; margin-bottom: 8px; }
+        .title { font-weight: 700; font-size: 13px; margin-bottom: 4px; line-height: 1.2; }
+        .desc { font-size: 9px; color: gray; }
+        .new-badge { position: absolute; top: 8px; right: 8px; width: 6px; height: 6px; background: #ff4757; border-radius: 50%; }
+
+        /* --- ADS UI --- */
+        .ad-card {
+            grid-column: span 2; 
+            background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+            border: 1px solid #ffd700;
+            flex-direction: row; align-items: center; text-align: left; padding: 15px;
+        }
+        .ad-badge {
+            position: absolute; top: 6px; right: 6px;
+            background: #ffd700; color: #000; font-size: 7px; font-weight: 800;
+            padding: 2px 4px; border-radius: 2px;
+        }
+        .ad-icon { font-size: 24px; margin-right: 12px; color: #ffd700; }
+        .ad-text h4 { margin: 0; color: #fff; font-size: 14px; }
+        .ad-btn { margin-top: 4px; background: #ffd700; color: #000; border: none; padding: 4px 12px; border-radius: 20px; font-size: 9px; font-weight: bold; }
+
+        /* --- FOOTER --- */
+        footer { margin-top: 20px; padding: 40px 20px 100px 20px; text-align: center; color: gray; opacity: 0.7; }
+        .secure-icon { font-size: 24px; color: var(--accent); margin-bottom: 8px; }
+        .brand-name { font-weight: 900; letter-spacing: 1px; font-size: 11px; text-transform: uppercase; color: var(--text); }
+
+        /* LOADING */
+        .skeleton { background: #222; height: 110px; border-radius: 18px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="login-overlay">
-        <div class="login-card">
-            <h2 style="color:var(--accent)">BaseKey Login</h2>
-            <div id="step-1">
-                <input type="email" id="email-in" class="login-input" placeholder="Enter Email">
-                <button onclick="requestOTP()" id="send-btn" class="login-btn">Send OTP</button>
-            </div>
-            <div id="step-2" style="display:none;">
-                <input type="number" id="otp-in" class="login-input" placeholder="Enter 6-Digit Code">
-                <button onclick="confirmOTP()" class="login-btn">Verify & Enter</button>
-            </div>
+    <header>
+        <div class="brand"><i class="fas fa-infinity"></i> BaseKey OS</div>
+        <div class="header-controls">
+            <div class="status-pill"><span id="network">4G</span> | <span id="battery">100%</span></div>
+            <i class="fas fa-moon" id="theme-btn" onclick="toggleTheme()"></i>
         </div>
+    </header>
+
+    <div class="search-wrapper">
+        <input type="text" class="search-box" id="search" placeholder="Search Tools or Videos..." onkeyup="filterApps()">
+        <i class="fas fa-microphone mic-icon" onclick="voiceSearch()"></i>
     </div>
 
-    <div id="main-wrapper">
-        <header style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(10,10,10,0.85);">
-            <div class="brand"><i class="fas fa-infinity"></i> BaseKey OS</div>
-            <i class="fas fa-sign-out-alt" onclick="logout()" style="color:red; cursor:pointer;"></i>
-        </header>
-
-        <div style="padding: 20px;">
-            <div class="grid" id="app-grid"></div>
-        </div>
+    <div class="api-bar">
+        <button class="api-btn" onclick="fetchInvidious()"><i class="fas fa-ghost"></i> Invidious</button>
+        <button class="api-btn" onclick="fetchPiped()"><i class="fas fa-pipe"></i> Piped</button>
+        <button class="api-btn" onclick="fetchDailymotion()"><i class="fas fa-video"></i> Dailymotion</button>
     </div>
+
+    <div id="videoModal" class="video-modal">
+        <div class="modal-header">
+            <span id="modal-title">Video Search Results</span>
+            <i class="fas fa-times close-btn" onclick="closeModal()"></i>
+        </div>
+        <div id="video-grid" class="video-results">
+            </div>
+    </div>
+
+    <div id="loader" class="grid">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+
+    <div id="app-grid" class="grid" style="display:none;"></div>
+
+    <footer>
+        <i class="fas fa-shield-alt secure-icon"></i>
+        <div style="font-size: 10px;">Powered by</div>
+        <div class="brand-name">♾️ BaseKey Infinity</div>
+        <div style="font-size: 9px; margin-top: 8px;">
+            <i class="fas fa-lock"></i> Secure Educational Environment
+        </div>
+    </footer>
+
+    <div id="google_translate_element"></div>
 
     <script>
-        let correctOTP = null;
-
-        async function requestOTP() {
-            const email = document.getElementById('email-in').value;
-            if(!email) return alert("Email dalo bhai!");
-            
-            document.getElementById('send-btn').innerText = "Sending...";
-            correctOTP = Math.floor(100000 + Math.random() * 900000);
-
-            try {
-                // Yahan '/api/send' tabhi chalega jab folder structure sahi ho
-                const res = await fetch('/api/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, otp: correctOTP })
-                });
-
-                if(res.ok) {
-                    document.getElementById('step-1').style.display = 'none';
-                    document.getElementById('step-2').style.display = 'block';
-                    alert("OTP chala gaya!");
-                } else {
-                    alert("Backend Error! Vercel Variables check karo.");
-                }
-            } catch (err) { alert("Error: Server tak baat nahi pahuchi!"); }
-            document.getElementById('send-btn').innerText = "Send OTP";
-        }
-
-        function confirmOTP() {
-            const userOTP = document.getElementById('otp-in').value;
-            if(userOTP == correctOTP) {
-                localStorage.setItem('auth', 'true');
-                unlockApp();
-            } else { alert("Wrong OTP!"); }
-        }
-
-        function unlockApp() {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('main-wrapper').style.display = 'block';
-            loadMyApps();
-        }
-
-        function logout() { localStorage.removeItem('auth'); location.reload(); }
-
-        // --- APPS LIST (Aapki uploaded index.html wali list) ---
+        // --- SAFE & SEO FRIENDLY APP LIST ---
+        // Maine saare naam 'Clean' kar diye hain taaki Google khush rahe
         const apps = [
-            { n: "Science Lab", u: "alchemy.html", i: "🧪" },
-            { n: "Solar Explorer", u: "globe.html", i: "🌍" },
-            { n: "Math Solver", u: "math.html", i: "📐" },
-            { n: "Network Node", u: "cyber.html", i: "💻" }
-            // Aap apni baaki list yahan add kar lena
+            { n: "Science Lab", u: "alchemy.html", i: "🧪", d: "Element Reaction Sim", t: "science chemistry education" },
+            { n: "Solar Explorer", u: "globe.html", i: "🌍", d: "3D Space Model", t: "space nasa planet" },
+            { n: "History Feed", u: "history.html", i: "⏳", d: "Timeline Archives", t: "history social" },
+            { n: "Math Solver", u: "math.html", i: "📐", d: "Advanced Calculator", t: "math calc study" },
+            { n: "Network Node", u: "cyber.html", i: "💻", d: "Traffic Monitor", t: "network system server" }, // Renamed from Cyber Map
+            { n: "Bio Database", u: "bio.html", i: "🧬", d: "Species Encyclopedia", t: "biology animal nature" },
+            { n: "Gravity Lab", u: "physics.html", i: "⚛️", d: "Physics Simulation", t: "game physics newton" },
+            { n: "Nexus Assistant", u: "ai.html", i: "🤖", d: "Virtual Helper", t: "ai bot chat" },
+            { n: "Knowledge Base", u: "library.html", i: "📖", d: "Global Wiki", t: "book study read" },
+            { n: "Vedic Wisdom", u: "vedic.html", i: "🕉️", d: "Ancient Audio Archives", t: "culture sanskrit india" },
+            { n: "Weather Sat", u: "climate.html", i: "🌦️", d: "Global Climate Map", t: "weather map rain" },
+            { n: "Humor Hub", u: "meme.html", i: "😂", d: "Daily Entertainment", t: "fun funny image" },
+            { n: "Focus Tunes", u: "music.html", i: "🎵", d: "Ambient Audio", t: "music song relax" },
+            { n: "Language Pro", u: "polyglot.html", i: "🗣️", d: "Vocab Builder", t: "learn language speak" },
+            { n: "Market Sim", u: "crypto.html", i: "💰", d: "Economic Trends", t: "money stock finance" },
+            { n: "Virtual Museum", u: "art.html", i: "🎨", d: "Classic Art Gallery", t: "art museum painting" },
+            { n: "Daily Inspiro", u: "quote.html", i: "📝", d: "Thought of the Day", t: "text motivation" },
+            { n: "Net Speed", u: "speed.html", i: "🚀", d: "Connectivity Test", t: "wifi network speed" },
+            { n: "Zen Mode", u: "zen.html", i: "🧘", d: "Health & Wellness", t: "health yoga breathe" },
+            { n: "Logic Game", u: "game.html", i: "❌", d: "Strategy Puzzle", t: "game play fun" },
+            { n: "Trivia Quiz", u: "quiz.html", i: "🎮", d: "Knowledge Test", t: "game study exam" }
         ];
 
-        function loadMyApps() {
-            document.getElementById('app-grid').innerHTML = apps.map(a => `
-                <div class="card" onclick="window.location.href='${a.u}'" style="background:#111; padding:15px; border-radius:18px; text-align:center; border:var(--border);">
-                    <div style="font-size:30px;">${a.i}</div>
-                    <div style="font-size:13px; font-weight:700;">${a.n}</div>
-                </div>`).join('');
+        // --- PERFORMANCE ENGINE ---
+        const grid = document.getElementById('app-grid');
+        setTimeout(() => { document.getElementById('loader').style.display = 'none'; grid.style.display = 'grid'; renderApps(apps); }, 800);
+        setTimeout(() => apps.forEach(a => { const l = document.createElement('link'); l.rel='prefetch'; l.href=a.u; document.head.appendChild(l); }), 3000);
+
+        function renderApps(list) {
+            grid.innerHTML = '';
+            list.forEach((app, i) => {
+                const isNew = Math.random() > 0.8 ? '<div class="new-badge"></div>' : '';
+                grid.innerHTML += `
+                    <a href="${app.u}" class="card" onclick="haptic()">
+                        ${isNew}<div class="icon-box">${app.i}</div>
+                        <div class="title">${app.n}</div><div class="desc">${app.d}</div>
+                    </a>`;
+                if ((i + 1) % 6 === 0) insertAd();
+            });
         }
 
-        window.onload = () => { if(localStorage.getItem('auth')) unlockApp(); };
+        // --- AD ENGINE (Professional) ---
+        function insertAd() {
+            grid.innerHTML += `
+                <div class="card ad-card" onclick="haptic()">
+                    <div class="ad-badge">Sponsored</div><div class="ad-icon">🚀</div>
+                    <div class="ad-text"><h4>BaseKey Premium</h4><button class="ad-btn">LEARN MORE</button></div>
+                </div>`;
+        }
+
+        // --- SYSTEM LOGIC ---
+        function toggleTheme() {
+            haptic();
+            const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.getElementById('theme-btn').className = newTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        if(localStorage.getItem('theme') === 'light') toggleTheme();
+
+        function filterApps() {
+            const q = document.getElementById('search').value.toLowerCase();
+            renderApps(apps.filter(a => a.n.toLowerCase().includes(q) || a.t.includes(q)));
+        }
+
+        function haptic() { if (navigator.vibrate) navigator.vibrate(15); }
+        function voiceSearch() { haptic(); alert("🎤 Voice Search Active..."); }
+        document.addEventListener('contextmenu', e => e.preventDefault()); // Security
+
+        // --- TRANSLATE ---
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn,te,mr'}, 'google_translate_element');
+        }
+        
+        // --- STATUS BAR ---
+        if(navigator.getBattery) navigator.getBattery().then(b => document.getElementById('battery').innerText = Math.round(b.level * 100) + "%");
+        if(navigator.connection) document.getElementById('network').innerText = navigator.connection.effectiveType.toUpperCase();
+
+        // =========================================================
+        // --- NEW: OPEN SOURCE VIDEO API INTEGRATION START ---
+        // =========================================================
+
+        const videoModal = document.getElementById('videoModal');
+        const videoGrid = document.getElementById('video-grid');
+        const modalTitle = document.getElementById('modal-title');
+
+        function openModal(service) {
+            haptic();
+            videoModal.style.display = 'flex';
+            modalTitle.innerText = service + " Search Results";
+            videoGrid.innerHTML = '<div style="color:var(--accent); padding:20px;">Searching decentralized network...</div>';
+        }
+
+        function closeModal() {
+            haptic();
+            videoModal.style.display = 'none';
+        }
+
+        function getQuery() {
+            const q = document.getElementById('search').value;
+            if(!q) { alert("Please type a search query first!"); return null; }
+            return q;
+        }
+
+        // 1. INVIDIOUS API (Public Instance)
+        async function fetchInvidious() {
+            const q = getQuery(); if(!q) return;
+            openModal("Invidious");
+            try {
+                // Using a known public instance. If it fails, try another instance.
+                const response = await fetch(`https://invidious.jing.rocks/api/v1/search?q=${encodeURIComponent(q)}`);
+                const data = await response.json();
+                renderVideos(data, 'invidious');
+            } catch (e) {
+                videoGrid.innerHTML = '<div style="color:red">Instance error. Try Piped.</div>';
+            }
+        }
+
+        // 2. PIPED API (Faster, JSON based)
+        async function fetchPiped() {
+            const q = getQuery(); if(!q) return;
+            openModal("Piped");
+            try {
+                const response = await fetch(`https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(q)}&filter=all`);
+                const data = await response.json();
+                renderVideos(data.items, 'piped');
+            } catch (e) {
+                videoGrid.innerHTML = '<div style="color:red">Network error. Try Dailymotion.</div>';
+            }
+        }
+
+        // 3. DAILYMOTION API (Official Public)
+        async function fetchDailymotion() {
+            const q = getQuery(); if(!q) return;
+            openModal("Dailymotion");
+            try {
+                const response = await fetch(`https://api.dailymotion.com/videos?fields=id,title,thumbnail_url,owner.username&search=${encodeURIComponent(q)}&limit=10`);
+                const data = await response.json();
+                renderVideos(data.list, 'dailymotion');
+            } catch (e) {
+                videoGrid.innerHTML = '<div style="color:red">API Error.</div>';
+            }
+        }
+
+        function renderVideos(list, type) {
+            videoGrid.innerHTML = '';
+            if(!list || list.length === 0) { videoGrid.innerHTML = 'No results found.'; return; }
+
+            list.forEach(v => {
+                let title, thumb, link, source;
+
+                if(type === 'invidious') {
+                    if(v.type !== 'video') return;
+                    title = v.title;
+                    thumb = v.videoThumbnails && v.videoThumbnails.length > 0 ? v.videoThumbnails[0].url : '';
+                    link = `https://invidious.jing.rocks/watch?v=${v.videoId}`;
+                    source = "Invidious Node";
+                } 
+                else if(type === 'piped') {
+                    title = v.title;
+                    thumb = v.thumbnail;
+                    link = `https://piped.kavin.rocks/watch?v=${v.url.split('v=')[1]}`;
+                    source = "Piped Instance";
+                }
+                else if(type === 'dailymotion') {
+                    title = v.title;
+                    thumb = v.thumbnail_url;
+                    link = `https://www.dailymotion.com/video/${v.id}`;
+                    source = "Dailymotion Cloud";
+                }
+
+                videoGrid.innerHTML += `
+                    <div class="vid-card" onclick="window.open('${link}', '_blank')">
+                        <img src="${thumb}" class="vid-thumb" onerror="this.src='https://via.placeholder.com/250x140?text=No+Preview'">
+                        <div class="vid-info">
+                            <div class="vid-title">${title}</div>
+                            <div class="vid-source"><i class="fas fa-link"></i> ${source}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        // --- VIDEO API INTEGRATION END ---
+
     </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
 </body>
 </html>
