@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Art Gallery</title>
+    <style>
+        body { background: #222; color: #eee; font-family: serif; margin: 0; padding: 20px; text-align: center; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .frame { background: #111; padding: 10px; border: 5px solid #d4af37; box-shadow: 5px 5px 15px black; }
+        img { width: 100%; display: block; filter: sepia(20%); }
+        .caption { padding-top: 10px; font-style: italic; }
+        .goog-te-banner-frame { display: none !important; } body { top: 0 !important; }
+    </style>
+</head>
+<body>
+    <a href="index.html" style="color:white;">⬅ Back to Museum</a>
+    <h1 style="color:#d4af37;">Louvre 2.0</h1>
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <div class="gallery">
+        <div class="frame">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg" alt="Mona Lisa">
+            <div class="caption">Mona Lisa - Da Vinci</div>
+        </div>
+        <div class="frame">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg" alt="Starry Night">
+            <div class="caption">Starry Night - Van Gogh</div>
+        </div>
+        <div class="frame">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/1280px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg" alt="Birth of Venus">
+            <div class="caption">The Birth of Venus - Botticelli</div>
+        </div>
+    </div>
+    <script>
+        function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

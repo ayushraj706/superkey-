@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Universal Explorer</title>
+    <style>
+        body { margin: 0; padding: 0; background: black; color: #00ffcc; font-family: 'Courier New', monospace; overflow: hidden; }
+
+        /* HEADER */
+        header {
+            position: absolute; top: 0; left: 0; width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid #00ffcc;
+            padding: 10px;
+            z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        h1 { margin: 0; font-size: 18px; padding-left: 10px; text-transform: uppercase; }
+        .back-btn { text-decoration: none; color: white; border: 1px solid white; padding: 5px 10px; margin-right: 10px; border-radius: 5px; font-size: 12px; }
+
+        /* NASA IFRAME */
+        iframe { width: 100vw; height: 100vh; border: none; }
+
+        /* FACT BOX (Ye Translate Hoga) */
+        #fact-box {
+            position: absolute; bottom: 20px; left: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #00ffcc;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+        }
+        #fact-text { color: white; font-size: 14px; margin-bottom: 10px; }
+        button { background: #00ffcc; border: none; padding: 5px 15px; font-weight: bold; cursor: pointer; border-radius: 3px; }
+
+        /* Google Translate Styling */
+        #google_translate_element { position: absolute; top: 50px; right: 10px; z-index: 200; }
+        .goog-te-gadget-simple { background: #000 !important; border: 1px solid #00ffcc !important; color: white !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>🌍 Universal Explorer</h1>
+            <small style="color:gray; padding-left:10px;">Live NASA Data Feed</small>
+        </div>
+        <a href="index.html" class="back-btn">⬅ Dashboard</a>
+    </header>
+
+    <div id="google_translate_element"></div>
+
+    <iframe src="https://eyes.nasa.gov/apps/orrery/#/home" allowfullscreen></iframe>
+
+    <div id="fact-box">
+        <div style="color:#00ffcc; font-weight:bold; margin-bottom:5px;">🛰️ COSMIC DATA:</div>
+        <div id="fact-text">Welcome, Explorer. Click the button to scan the universe for facts.</div>
+        <button onclick="nextFact()">📡 SCAN NEXT FACT</button>
+    </div>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,bn,te,mr,ta,ur,gu,kn,ml,or,pa,as,mai,sa',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+
+        // SPACE FACTS DATABASE
+        const facts = [
+            "The Sun contains 99.86% of the mass in the Solar System.",
+            "One day on Venus is longer than one year on Venus.",
+            "Neutron stars can spin at a rate of 600 rotations per second.",
+            "There are more stars in the universe than grains of sand on all the beaches on Earth.",
+            "Space is completely silent because there is no atmosphere to carry sound.",
+            "A spoon full of a neutron star would weigh about 6 billion tons.",
+            "Footprints left on the Moon won’t disappear as there is no wind.",
+            "Jupiter has 79 known moons orbiting it.",
+            "The sunset on Mars appears blue.",
+            "India was the first nation to reach Mars orbit on its first attempt (Mangalyaan)."
+        ];
+
+        function nextFact() {
+            const random = Math.floor(Math.random() * facts.length);
+            document.getElementById('fact-text').innerText = facts[random];
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

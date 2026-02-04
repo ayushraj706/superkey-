@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Quiz Arena</title>
+    <style>
+        :root { --bg: #121212; --card: #1e1e1e; --text: #fff; --accent: #bb86fc; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 20px; text-align: center; }
+        
+        .quiz-container { max-width: 600px; margin: 50px auto; background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #333; }
+        .question { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        
+        button {
+            background: #333; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.3s;
+        }
+        button:hover { background: #444; }
+        
+        .correct { background: #00e676 !important; color: black; }
+        .wrong { background: #ff1744 !important; color: white; }
+        
+        .score-board { font-size: 18px; color: var(--accent); margin-bottom: 20px; }
+        .back-btn { display: inline-block; margin-top: 20px; color: gray; text-decoration: none; }
+
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+    <div class="score-board">Score: <span id="score">0</span></div>
+    
+    <div class="quiz-container">
+        <div id="quiz-box">
+            <div class="question" id="ques">Loading...</div>
+            <div class="options" id="opts"></div>
+        </div>
+        <div id="result-box" style="display:none;">
+            <h2>Game Over!</h2>
+            <p>Your Final Score: <span id="final-score"></span></p>
+            <button onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+    
+    <a href="index.html" class="back-btn">⬅ Back to Dashboard</a>
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <script>
+        const db = [
+            { q: "What is the capital of India?", o: ["Mumbai", "Delhi", "Kolkata", "Chennai"], a: 1 },
+            { q: "Who is known as the Missile Man of India?", o: ["CV Raman", "Homi Bhabha", "APJ Abdul Kalam", "Vikram Sarabhai"], a: 2 },
+            { q: "Which planet is known as the Red Planet?", o: ["Mars", "Venus", "Jupiter", "Saturn"], a: 0 },
+            { q: "What is 12 + 15?", o: ["25", "27", "30", "22"], a: 1 },
+            { q: "Which element has the symbol 'O'?", o: ["Gold", "Oxygen", "Osmium", "Silver"], a: 1 }
+        ];
+
+        let curr = 0;
+        let score = 0;
+
+        function loadQ() {
+            if (curr >= db.length) {
+                document.getElementById('quiz-box').style.display = 'none';
+                document.getElementById('result-box').style.display = 'block';
+                document.getElementById('final-score').innerText = score + "/" + db.length;
+                return;
+            }
+            const data = db[curr];
+            document.getElementById('ques').innerText = (curr + 1) + ". " + data.q;
+            const opts = document.getElementById('opts');
+            opts.innerHTML = '';
+            
+            data.o.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.onclick = () => check(btn, index, data.a);
+                opts.appendChild(btn);
+            });
+        }
+
+        function check(btn, selected, correct) {
+            const btns = document.querySelectorAll('.options button');
+            btns.forEach(b => b.disabled = true); // Lock buttons
+            
+            if (selected === correct) {
+                btn.classList.add('correct');
+                score++;
+                document.getElementById('score').innerText = score;
+            } else {
+                btn.classList.add('wrong');
+                btns[correct].classList.add('correct'); // Show right answer
+            }
+            
+            setTimeout(() => {
+                curr++;
+                loadQ();
+            }, 1500);
+        }
+
+        loadQ();
+
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn'}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

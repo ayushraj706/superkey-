@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Infinite Library</title>
+    <style>
+        /* --- DIGITAL ARCHIVE THEME --- */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --accent: #bb86fc; /* Purple for Mystery/Knowledge */
+            --border: #333;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Georgia', serif; /* Serif font for Book feel */
+            margin: 0; padding: 20px;
+        }
+
+        /* HEADER */
+        header {
+            text-align: center; margin-bottom: 30px;
+            border-bottom: 1px solid var(--border); padding-bottom: 20px;
+        }
+        .lib-title { font-size: 28px; color: var(--accent); font-weight: bold; letter-spacing: 2px; }
+        .subtitle { font-size: 12px; color: gray; font-family: sans-serif; }
+        .back-btn { 
+            position: absolute; top: 20px; left: 20px; 
+            text-decoration: none; color: white; background: #333; 
+            padding: 5px 10px; border-radius: 5px; font-family: sans-serif; font-size: 12px; 
+        }
+
+        /* SEARCH BAR (Hero Section) */
+        .search-container {
+            max-width: 600px; margin: 0 auto 40px auto; position: relative;
+        }
+        .search-box {
+            width: 100%; padding: 15px 50px 15px 20px;
+            border-radius: 30px; border: 2px solid var(--border);
+            background: #000; color: white; font-size: 18px; outline: none;
+            transition: 0.3s;
+        }
+        .search-box:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(187, 134, 252, 0.3); }
+        .search-icon { position: absolute; right: 20px; top: 18px; color: var(--accent); cursor: pointer; }
+
+        /* BOOKSHELF GRID */
+        .bookshelf {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;
+        }
+
+        .book-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 5px; padding: 20px;
+            transition: transform 0.3s; cursor: pointer;
+            position: relative; overflow: hidden;
+        }
+        .book-card:hover { transform: translateY(-10px); border-color: var(--accent); }
+        .book-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%;
+            background: var(--accent); /* Book Spine */
+        }
+
+        .b-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #fff; }
+        .b-snippet { font-size: 12px; color: #aaa; line-height: 1.5; font-family: sans-serif; }
+
+        /* READING MODAL (Popup) */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #1e1e1e; width: 90%; max-width: 700px; max-height: 80vh;
+            padding: 30px; border-radius: 10px; border: 1px solid var(--accent);
+            overflow-y: auto; position: relative;
+        }
+        .close-btn {
+            position: absolute; top: 10px; right: 20px; font-size: 30px; cursor: pointer; color: white;
+        }
+        #modal-body { line-height: 1.8; font-size: 16px; color: #ddd; }
+        .read-more {
+            display: block; margin-top: 20px; color: var(--accent); text-align: center; text-decoration: none;
+        }
+
+        /* LOADING SPINNER */
+        .loader {
+            border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%;
+            width: 30px; height: 30px; animation: spin 1s linear infinite;
+            margin: 20px auto; display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* GOOGLE HACK */
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-btn">⬅ Dashboard</a>
+
+    <header>
+        <div class="lib-title">📖 The Infinite Library</div>
+        <div class="subtitle">Access 6 Million+ Articles instantly</div>
+    </header>
+
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-box" placeholder="Search history, science, people..." onkeypress="handleEnter(event)">
+        <span class="search-icon" onclick="searchWiki()">🔍</span>
+    </div>
+
+    <div class="loader" id="loader"></div>
+    <div class="bookshelf" id="results">
+        <div style="grid-column: 1/-1; text-align: center; color: gray; margin-top: 50px;">
+            Search for anything above to begin reading.<br>
+            <i>Try: "Albert Einstein", "Black Hole", "Ayurveda"</i>
+        </div>
+    </div>
+
+    <div class="modal" id="readModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title" style="color:var(--accent);"></h2>
+            <div id="modal-body"></div>
+            <a href="#" id="modal-link" class="read-more" target="_blank">Open Full Article on Wikipedia ↗</a>
+        </div>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+        const loader = document.getElementById('loader');
+
+        // --- 1. SEARCH FUNCTION (WIKIPEDIA API) ---
+        async function searchWiki() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) return;
+
+            resultsDiv.innerHTML = '';
+            loader.style.display = 'block';
+
+            // API Call (Search List)
+            const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&prop=info&inprop=url&utf8=&format=json&origin=*&srlimit=12&srsearch=${query}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const articles = data.query.search;
+                
+                loader.style.display = 'none';
+                displayBooks(articles);
+            } catch (error) {
+                console.error(error);
+                loader.style.display = 'none';
+                resultsDiv.innerHTML = '<p style="text-align:center">Error fetching from the archive. Check internet.</p>';
+            }
+        }
+
+        // --- 2. DISPLAY BOOKS ---
+        function displayBooks(articles) {
+            if (articles.length === 0) {
+                resultsDiv.innerHTML = '<p style="text-align:center">No records found in the archive.</p>';
+                return;
+            }
+
+            articles.forEach(article => {
+                const div = document.createElement('div');
+                div.className = 'book-card';
+                // Remove HTML tags from snippet
+                const snippet = article.snippet.replace(/<[^>]*>/g, '');
+                
+                div.innerHTML = `
+                    <div class="b-title">${article.title}</div>
+                    <div class="b-snippet">${snippet}...</div>
+                `;
+                div.onclick = () => openArticle(article.pageid);
+                resultsDiv.appendChild(div);
+            });
+        }
+
+        // --- 3. FETCH FULL CONTENT (For Modal) ---
+        async function openArticle(pageid) {
+            // Show Modal with loading
+            const modal = document.getElementById('readModal');
+            document.getElementById('modal-title').innerText = "Loading...";
+            document.getElementById('modal-body').innerText = "Retrieving knowledge...";
+            modal.style.display = 'flex';
+
+            const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&pageids=${pageid}&exintro=true&explaintext=true`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const page = data.query.pages[pageid];
+
+                document.getElementById('modal-title').innerText = page.title;
+                document.getElementById('modal-body').innerText = page.extract;
+                document.getElementById('modal-link').href = `https://en.wikipedia.org/?curid=${pageid}`;
+
+            } catch (error) {
+                document.getElementById('modal-body').innerText = "Failed to load content.";
+            }
+        }
+
+        // --- 4. UTILS ---
+        function closeModal() {
+            document.getElementById('readModal').style.display = 'none';
+        }
+        
+        function handleEnter(e) {
+            if (e.key === 'Enter') searchWiki();
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('readModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // --- TRANSLATE INIT ---
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn,te,mr'}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

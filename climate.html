@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Climate Watch</title>
+    <style>
+        body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+        header {
+            position: absolute; top: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.8); color: #00ffcc;
+            padding: 10px; display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        .title { font-weight: bold; font-family: sans-serif; }
+        .back-btn { color: white; text-decoration: none; border: 1px solid white; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-family: sans-serif; }
+        iframe { width: 100vw; height: 100vh; border: none; }
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title">🌦️ Climate Watch</div>
+        <a href="index.html" class="back-btn">Exit</a>
+    </header>
+    <div id="google_translate_element" style="display:none;"></div>
+    
+    <iframe src="https://embed.windy.com/embed2.html?lat=20.594&lon=78.963&detailLat=20.594&detailLon=78.963&width=650&height=450&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1" frameborder="0"></iframe>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn'}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Crypto Pulse</title>
+    <style>
+        body { background: #0b0e11; color: white; font-family: monospace; padding: 20px; }
+        .header { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .coin-row { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; transition: 0.3s; }
+        .coin-row:hover { background: #1a1e23; }
+        .green { color: #00ff00; }
+        .red { color: #ff0000; }
+        .goog-te-banner-frame { display: none !important; } body { top: 0 !important; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span>📈 MARKET LIVE</span>
+        <a href="index.html" style="color:white; text-decoration:none;">EXIT</a>
+    </div>
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <div id="market">
+        </div>
+
+    <script>
+        const coins = [
+            { n: "Bitcoin", s: "BTC", p: 45000 },
+            { n: "Ethereum", s: "ETH", p: 3200 },
+            { n: "Dogecoin", s: "DOGE", p: 0.12 },
+            { n: "Solana", s: "SOL", p: 110 },
+            { n: "BaseKey Coin", s: "KEY", p: 1000 } // Apna Coin
+        ];
+
+        function render() {
+            const div = document.getElementById('market');
+            div.innerHTML = '';
+            coins.forEach(c => {
+                // Random Fluctuation
+                const change = (Math.random() - 0.5) * 2;
+                c.p += change; 
+                const color = change > 0 ? "green" : "red";
+                
+                div.innerHTML += `
+                    <div class="coin-row">
+                        <span><b>${c.n}</b> <span style="color:gray">${c.s}</span></span>
+                        <span class="${color}">$${c.p.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+        }
+        setInterval(render, 1000); // Update every second
+        render();
+        function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

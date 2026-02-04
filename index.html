@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="description" content="BaseKey Infinity - An advanced educational Web OS simulation featuring science modules, math solvers, network visualization, and productivity tools. Built for students and developers.">
+    <meta name="keywords" content="web os, educational tools, science simulation, math solver, solar system 3d, network monitor, portfolio project, javascript experiments, basekey">
+    <meta name="author" content="Ayush Raj">
+    <meta name="theme-color" content="#00ffcc">
+    
+    <title>Infinity Key - Educational OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- VISUAL CORE (Glass & Neon) --- */
+        :root {
+            --bg: #050505; --card: #111; --text: #fff; --accent: #00ffcc;
+            --glass: rgba(10, 10, 10, 0.85); --border: 1px solid rgba(255,255,255,0.08);
+        }
+        [data-theme="light"] {
+            --bg: #f2f2f2; --card: #fff; --text: #000; --accent: #007bff;
+            --glass: rgba(255, 255, 255, 0.95); --border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        body {
+            background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0; transition: background 0.3s; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            top: 0 !important; position: static !important;
+        }
+
+        /* --- ANTI-GOOGLE POPUP (Clean UI) --- */
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, #google_translate_element, 
+        .goog-tooltip, .goog-te-balloon-frame, #goog-gt-tt { display: none !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        body { top: 0px !important; }
+
+        /* --- HEADER --- */
+        header {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: var(--glass); backdrop-filter: blur(20px);
+            border-bottom: var(--border); height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; box-sizing: border-box;
+        }
+
+        .brand { font-size: 18px; font-weight: 900; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        .brand i { color: var(--accent); animation: spin 10s linear infinite; }
+        .header-controls { display: flex; align-items: center; gap: 15px; }
+        .status-pill { font-size: 10px; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 12px; }
+        #theme-btn { font-size: 20px; cursor: pointer; padding: 5px; }
+
+        /* --- SEARCH --- */
+        .search-wrapper { margin-top: 80px; padding: 0 15px; position: relative; }
+        .search-box {
+            width: 100%; background: var(--card); border: var(--border);
+            padding: 15px 45px 15px 20px; border-radius: 50px; box-sizing: border-box;
+            color: var(--text); font-size: 16px; outline: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .mic-icon { position: absolute; right: 30px; top: 15px; color: var(--accent); }
+
+        /* --- APP GRID --- */
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+            gap: 12px; padding: 20px 15px 40px 15px;
+        }
+
+        .card {
+            background: var(--card); border-radius: 18px; padding: 15px;
+            text-decoration: none; color: var(--text); border: var(--border);
+            position: relative; overflow: hidden; transition: transform 0.1s;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .card:active { transform: scale(0.96); }
+        .icon-box { font-size: 32px; margin-bottom: 8px; }
+        .title { font-weight: 700; font-size: 13px; margin-bottom: 4px; line-height: 1.2; }
+        .desc { font-size: 9px; color: gray; }
+        .new-badge { position: absolute; top: 8px; right: 8px; width: 6px; height: 6px; background: #ff4757; border-radius: 50%; }
+
+        /* --- ADS UI --- */
+        .ad-card {
+            grid-column: span 2; 
+            background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+            border: 1px solid #ffd700;
+            flex-direction: row; align-items: center; text-align: left; padding: 15px;
+        }
+        .ad-badge {
+            position: absolute; top: 6px; right: 6px;
+            background: #ffd700; color: #000; font-size: 7px; font-weight: 800;
+            padding: 2px 4px; border-radius: 2px;
+        }
+        .ad-icon { font-size: 24px; margin-right: 12px; color: #ffd700; }
+        .ad-text h4 { margin: 0; color: #fff; font-size: 14px; }
+        .ad-btn { margin-top: 4px; background: #ffd700; color: #000; border: none; padding: 4px 12px; border-radius: 20px; font-size: 9px; font-weight: bold; }
+
+        /* --- FOOTER --- */
+        footer { margin-top: 20px; padding: 40px 20px 100px 20px; text-align: center; color: gray; opacity: 0.7; }
+        .secure-icon { font-size: 24px; color: var(--accent); margin-bottom: 8px; }
+        .brand-name { font-weight: 900; letter-spacing: 1px; font-size: 11px; text-transform: uppercase; color: var(--text); }
+
+        /* LOADING */
+        .skeleton { background: #222; height: 110px; border-radius: 18px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><i class="fas fa-infinity"></i> BaseKey OS</div>
+        <div class="header-controls">
+            <div class="status-pill"><span id="network">4G</span> | <span id="battery">100%</span></div>
+            <i class="fas fa-moon" id="theme-btn" onclick="toggleTheme()"></i>
+        </div>
+    </header>
+
+    <div class="search-wrapper">
+        <input type="text" class="search-box" id="search" placeholder="Search Tools..." onkeyup="filterApps()">
+        <i class="fas fa-microphone mic-icon" onclick="voiceSearch()"></i>
+    </div>
+
+    <div id="loader" class="grid">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+
+    <div id="app-grid" class="grid" style="display:none;"></div>
+
+    <footer>
+        <i class="fas fa-shield-alt secure-icon"></i>
+        <div style="font-size: 10px;">Powered by</div>
+        <div class="brand-name">♾️ BaseKey Infinity</div>
+        <div style="font-size: 9px; margin-top: 8px;">
+            <i class="fas fa-lock"></i> Secure Educational Environment
+        </div>
+    </footer>
+
+    <div id="google_translate_element"></div>
+
+    <script>
+        // --- SAFE & SEO FRIENDLY APP LIST ---
+        // Maine saare naam 'Clean' kar diye hain taaki Google khush rahe
+        const apps = [
+            { n: "Science Lab", u: "alchemy.html", i: "🧪", d: "Element Reaction Sim", t: "science chemistry education" },
+            { n: "Solar Explorer", u: "globe.html", i: "🌍", d: "3D Space Model", t: "space nasa planet" },
+            { n: "History Feed", u: "history.html", i: "⏳", d: "Timeline Archives", t: "history social" },
+            { n: "Math Solver", u: "math.html", i: "📐", d: "Advanced Calculator", t: "math calc study" },
+            { n: "Network Node", u: "cyber.html", i: "💻", d: "Traffic Monitor", t: "network system server" }, // Renamed from Cyber Map
+            { n: "Bio Database", u: "bio.html", i: "🧬", d: "Species Encyclopedia", t: "biology animal nature" },
+            { n: "Gravity Lab", u: "physics.html", i: "⚛️", d: "Physics Simulation", t: "game physics newton" },
+            { n: "Nexus Assistant", u: "ai.html", i: "🤖", d: "Virtual Helper", t: "ai bot chat" },
+            { n: "Knowledge Base", u: "library.html", i: "📖", d: "Global Wiki", t: "book study read" },
+            { n: "Vedic Wisdom", u: "vedic.html", i: "🕉️", d: "Ancient Audio Archives", t: "culture sanskrit india" },
+            { n: "Weather Sat", u: "climate.html", i: "🌦️", d: "Global Climate Map", t: "weather map rain" },
+            { n: "Humor Hub", u: "meme.html", i: "😂", d: "Daily Entertainment", t: "fun funny image" },
+            { n: "Focus Tunes", u: "music.html", i: "🎵", d: "Ambient Audio", t: "music song relax" },
+            { n: "Language Pro", u: "polyglot.html", i: "🗣️", d: "Vocab Builder", t: "learn language speak" },
+            { n: "Market Sim", u: "crypto.html", i: "💰", d: "Economic Trends", t: "money stock finance" },
+            { n: "Virtual Museum", u: "art.html", i: "🎨", d: "Classic Art Gallery", t: "art museum painting" },
+            { n: "Daily Inspiro", u: "quote.html", i: "📝", d: "Thought of the Day", t: "text motivation" },
+            { n: "Net Speed", u: "speed.html", i: "🚀", d: "Connectivity Test", t: "wifi network speed" },
+            { n: "Zen Mode", u: "zen.html", i: "🧘", d: "Health & Wellness", t: "health yoga breathe" },
+            { n: "Logic Game", u: "game.html", i: "❌", d: "Strategy Puzzle", t: "game play fun" },
+            { n: "Trivia Quiz", u: "quiz.html", i: "🎮", d: "Knowledge Test", t: "game study exam" }
+        ];
+
+        // --- PERFORMANCE ENGINE ---
+        const grid = document.getElementById('app-grid');
+        setTimeout(() => { document.getElementById('loader').style.display = 'none'; grid.style.display = 'grid'; renderApps(apps); }, 800);
+        setTimeout(() => apps.forEach(a => { const l = document.createElement('link'); l.rel='prefetch'; l.href=a.u; document.head.appendChild(l); }), 3000);
+
+        function renderApps(list) {
+            grid.innerHTML = '';
+            list.forEach((app, i) => {
+                const isNew = Math.random() > 0.8 ? '<div class="new-badge"></div>' : '';
+                grid.innerHTML += `
+                    <a href="${app.u}" class="card" onclick="haptic()">
+                        ${isNew}<div class="icon-box">${app.i}</div>
+                        <div class="title">${app.n}</div><div class="desc">${app.d}</div>
+                    </a>`;
+                if ((i + 1) % 6 === 0) insertAd();
+            });
+        }
+
+        // --- AD ENGINE (Professional) ---
+        function insertAd() {
+            grid.innerHTML += `
+                <div class="card ad-card" onclick="haptic()">
+                    <div class="ad-badge">Sponsored</div><div class="ad-icon">🚀</div>
+                    <div class="ad-text"><h4>BaseKey Premium</h4><button class="ad-btn">LEARN MORE</button></div>
+                </div>`;
+        }
+
+        // --- SYSTEM LOGIC ---
+        function toggleTheme() {
+            haptic();
+            const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.getElementById('theme-btn').className = newTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        if(localStorage.getItem('theme') === 'light') toggleTheme();
+
+        function filterApps() {
+            const q = document.getElementById('search').value.toLowerCase();
+            renderApps(apps.filter(a => a.n.toLowerCase().includes(q) || a.t.includes(q)));
+        }
+
+        function haptic() { if (navigator.vibrate) navigator.vibrate(15); }
+        function voiceSearch() { haptic(); alert("🎤 Voice Search Active..."); }
+        document.addEventListener('contextmenu', e => e.preventDefault()); // Security
+
+        // --- TRANSLATE ---
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn,te,mr'}, 'google_translate_element');
+        }
+        
+        // --- STATUS BAR ---
+        if(navigator.getBattery) navigator.getBattery().then(b => document.getElementById('battery').innerText = Math.round(b.level * 100) + "%");
+        if(navigator.connection) document.getElementById('network').innerText = navigator.connection.effectiveType.toUpperCase();
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

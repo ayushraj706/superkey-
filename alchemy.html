@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Master Alchemy</title>
+    <style>
+        /* --- HIGH TECH DESIGN --- */
+        body { background: #050505; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 10px; }
+        
+        header { text-align: center; border-bottom: 2px solid #00ffcc; padding-bottom: 15px; margin-bottom: 20px; }
+        h1 { margin: 0; color: #00ffcc; letter-spacing: 3px; text-transform: uppercase; font-size: 24px; }
+        
+        /* CONTROLS */
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .btn { background: #333; color: white; border: 1px solid #555; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .btn.active { background: #00ffcc; color: black; font-weight: bold; }
+
+        /* PERIODIC TABLE GRID */
+        #periodic-table {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 5px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .element {
+            background: #1a1a1a; border: 1px solid #444;
+            padding: 5px; text-align: center; cursor: pointer;
+            border-radius: 4px; transition: transform 0.2s;
+            position: relative;
+        }
+        .element:hover { background: #333; transform: scale(1.1); border-color: #00ffcc; z-index: 10; }
+        .element .num { font-size: 10px; color: #888; display: block; text-align: left; }
+        .element .sym { font-size: 18px; font-weight: bold; color: #fff; display: block; }
+        .element .name { font-size: 8px; color: #aaa; display: block; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Color Coding based on Type */
+        .gas { border-bottom: 3px solid #ff4444; }
+        .solid { border-bottom: 3px solid #44ff44; }
+        .liquid { border-bottom: 3px solid #4444ff; }
+
+        /* MIXING AREA (Fixed at Bottom) */
+        #mixing-zone {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.9); border-top: 2px solid #00ffcc;
+            padding: 15px; text-align: center; z-index: 100;
+        }
+        #selected-list { font-size: 18px; color: yellow; margin-bottom: 10px; min-height: 25px; }
+        .action-btn { background: #00ffcc; border: none; padding: 10px 30px; font-weight: bold; font-size: 16px; border-radius: 20px; cursor: pointer; }
+
+        /* INFO POPUP */
+        #info-modal {
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: #222; border: 2px solid #00ffcc;
+            padding: 20px; width: 80%; max-width: 400px;
+            box-shadow: 0 0 20px rgba(0,255,204,0.2); z-index: 200;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🧪 Periodic Table Pro</h1>
+        <div style="font-size: 10px; color:gray;">Click element for details | Select to React</div>
+    </header>
+
+    <div class="controls">
+        <button class="btn active" onclick="setMode('modern')">Modern Table</button>
+        <button class="btn" onclick="setMode('mendeleev')">Mendeleev Mode</button>
+    </div>
+
+    <div id="periodic-table">
+        </div>
+
+    <div style="height: 150px;"></div> <div id="info-modal">
+        <h2 id="modal-sym" style="color:#00ffcc; margin:0;"></h2>
+        <h3 id="modal-name" style="color:white; margin:5px 0;"></h3>
+        <hr style="border-color:#444;">
+        <p><b>🔢 Atomic Number:</b> <span id="modal-num"></span></p>
+        <p><b>⚖️ Atomic Mass:</b> <span id="modal-mass"></span></p>
+        <p><b>🌍 Earth Abundance:</b> <span id="modal-abun"></span></p>
+        <p><b>📝 Description:</b> <span id="modal-desc"></span></p>
+        <button class="btn" onclick="addToMix()" style="width:100%; margin-top:10px;">➕ Add to Mixer</button>
+        <button class="btn" onclick="closeModal()" style="width:100%; margin-top:5px; background:#444;">Close</button>
+    </div>
+
+    <div id="mixing-zone">
+        <div id="selected-list">Empty Beaker</div>
+        <button class="action-btn" onclick="react()">🔥 REACT NOW</button>
+        <button class="btn" onclick="clearMix()" style="margin-left:10px; background:red;">Clear</button>
+        <p id="reaction-result" style="margin-top:10px; color: #fff; font-weight: bold;"></p>
+    </div>
+
+    <script>
+        // --- DATABASE OF ELEMENTS (Top 20 + Important Metals) ---
+        // Bhai, 118 likhne me bohot time lagega, ye main 30 hain jo experiments me use hote hain.
+                const elementsDB = [
+            { n: 1, s: 'H', name: 'Hydrogen', m: '1.008', a: '74%', type: 'gas', d: 'Fuel of stars. Most abundant.' },
+            { n: 2, s: 'He', name: 'Helium', m: '4.002', a: '23%', type: 'gas', d: 'Inert gas. Balloons & Sun.' },
+            { n: 3, s: 'Li', name: 'Lithium', m: '6.94', a: '0.002%', type: 'solid', d: 'Batteries & mental health.' },
+            { n: 4, s: 'Be', name: 'Beryllium', m: '9.012', a: '0.0002%', type: 'solid', d: 'Emeralds & aerospace.' },
+            { n: 5, s: 'B', name: 'Boron', m: '10.81', a: '0.001%', type: 'solid', d: 'Heat resistant glass.' },
+            { n: 6, s: 'C', name: 'Carbon', m: '12.01', a: '0.02%', type: 'solid', d: 'Basis of all life.' },
+            { n: 7, s: 'N', name: 'Nitrogen', m: '14.00', a: '78% (Air)', type: 'gas', d: 'Atmosphere major gas.' },
+            { n: 8, s: 'O', name: 'Oxygen', m: '15.99', a: '21% (Air)', type: 'gas', d: 'Vital for breathing.' },
+            { n: 9, s: 'F', name: 'Fluorine', m: '18.99', a: '0.05%', type: 'gas', d: 'Most reactive element.' },
+            { n: 10, s: 'Ne', name: 'Neon', m: '20.17', a: 'Trace', type: 'gas', d: 'Orange glow lights.' },
+            { n: 11, s: 'Na', name: 'Sodium', m: '22.98', a: '2.3%', type: 'solid', d: 'Salt component. Reactive.' },
+            { n: 12, s: 'Mg', name: 'Magnesium', m: '24.30', a: '2.3%', type: 'solid', d: 'White fireworks light.' },
+            { n: 13, s: 'Al', name: 'Aluminium', m: '26.98', a: '8.2%', type: 'solid', d: 'Cans & planes. Light metal.' },
+            { n: 14, s: 'Si', name: 'Silicon', m: '28.08', a: '28.2%', type: 'solid', d: 'Computer chips & sand.' },
+            { n: 15, s: 'P', name: 'Phosphorus', m: '30.97', a: '0.1%', type: 'solid', d: 'Matches & DNA backbone.' },
+            { n: 16, s: 'S', name: 'Sulfur', m: '32.06', a: '0.03%', type: 'solid', d: 'Yellow powder. Smell of egg.' },
+            { n: 17, s: 'Cl', name: 'Chlorine', m: '35.45', a: '0.01%', type: 'gas', d: 'Pool cleaner. Toxic gas.' },
+            { n: 18, s: 'Ar', name: 'Argon', m: '39.94', a: '0.9%', type: 'gas', d: 'Inert gas in lightbulbs.' },
+            { n: 19, s: 'K', name: 'Potassium', m: '39.09', a: '2.0%', type: 'solid', d: 'Bananas & nerve function.' },
+            { n: 20, s: 'Ca', name: 'Calcium', m: '40.07', a: '4.1%', type: 'solid', d: 'Bones & cement.' },
+            { n: 21, s: 'Sc', name: 'Scandium', m: '44.95', a: 'Trace', type: 'solid', d: 'Aerospace alloys.' },
+            { n: 22, s: 'Ti', name: 'Titanium', m: '47.86', a: '0.5%', type: 'solid', d: 'Strong, light, rust-proof.' },
+            { n: 23, s: 'V', name: 'Vanadium', m: '50.94', a: '0.01%', type: 'solid', d: 'Hard steel tools.' },
+            { n: 24, s: 'Cr', name: 'Chromium', m: '51.99', a: '0.01%', type: 'solid', d: 'Shiny plating & stainless.' },
+            { n: 25, s: 'Mn', name: 'Manganese', m: '54.93', a: '0.1%', type: 'solid', d: 'Steel hardness.' },
+            { n: 26, s: 'Fe', name: 'Iron', m: '55.84', a: '5.6%', type: 'solid', d: 'Steel & blood (hemoglobin).' },
+            { n: 27, s: 'Co', name: 'Cobalt', m: '58.93', a: '0.002%', type: 'solid', d: 'Blue glass & magnets.' },
+            { n: 28, s: 'Ni', name: 'Nickel', m: '58.69', a: '0.008%', type: 'solid', d: 'Coins & batteries.' },
+            { n: 29, s: 'Cu', name: 'Copper', m: '63.54', a: '0.006%', type: 'solid', d: 'Wiring & pipes.' },
+            { n: 30, s: 'Zn', name: 'Zinc', m: '65.38', a: '0.007%', type: 'solid', d: 'Galvanizing & brass.' },
+            { n: 31, s: 'Ga', name: 'Gallium', m: '69.72', a: 'Trace', type: 'solid', d: 'Melts in hand. LEDs.' },
+            { n: 32, s: 'Ge', name: 'Germanium', m: '72.63', a: 'Trace', type: 'solid', d: 'Semiconductors.' },
+            { n: 33, s: 'As', name: 'Arsenic', m: '74.92', a: 'Trace', type: 'solid', d: 'Poison & LEDs.' },
+            { n: 34, s: 'Se', name: 'Selenium', m: '78.97', a: 'Trace', type: 'solid', d: 'Copiers & dandruff shampoo.' },
+            { n: 35, s: 'Br', name: 'Bromine', m: '79.90', a: 'Trace', type: 'liquid', d: 'Red liquid. Fire retardant.' },
+            { n: 36, s: 'Kr', name: 'Krypton', m: '83.79', a: 'Trace', type: 'gas', d: 'Flashlights & lasers.' },
+            { n: 37, s: 'Rb', name: 'Rubidium', m: '85.46', a: '0.009%', type: 'solid', d: 'GPS clocks.' },
+            { n: 38, s: 'Sr', name: 'Strontium', m: '87.62', a: '0.03%', type: 'solid', d: 'Red fireworks.' },
+            { n: 39, s: 'Y', name: 'Yttrium', m: '88.90', a: 'Trace', type: 'solid', d: 'LEDs & lasers.' },
+            { n: 40, s: 'Zr', name: 'Zirconium', m: '91.22', a: '0.01%', type: 'solid', d: 'Fake diamonds (Cubic Zirconia).' },
+            { n: 41, s: 'Nb', name: 'Niobium', m: '92.90', a: 'Trace', type: 'solid', d: 'Superconducting magnets.' },
+            { n: 42, s: 'Mo', name: 'Molybdenum', m: '95.95', a: 'Trace', type: 'solid', d: 'High temp steel.' },
+            { n: 43, s: 'Tc', name: 'Technetium', m: '98', a: 'Synth', type: 'solid', d: 'First artificial element.' },
+            { n: 44, s: 'Ru', name: 'Ruthenium', m: '101.07', a: 'Trace', type: 'solid', d: 'Electrical contacts.' },
+            { n: 45, s: 'Rh', name: 'Rhodium', m: '102.90', a: 'Trace', type: 'solid', d: 'Most expensive metal.' },
+            { n: 46, s: 'Pd', name: 'Palladium', m: '106.42', a: 'Trace', type: 'solid', d: 'Catalytic converters.' },
+            { n: 47, s: 'Ag', name: 'Silver', m: '107.86', a: 'Trace', type: 'solid', d: 'Jewelry & conductors.' },
+            { n: 48, s: 'Cd', name: 'Cadmium', m: '112.41', a: 'Trace', type: 'solid', d: 'Toxic. Batteries.' },
+            { n: 49, s: 'In', name: 'Indium', m: '114.81', a: 'Trace', type: 'solid', d: 'Touchscreens.' },
+            { n: 50, s: 'Sn', name: 'Tin', m: '118.71', a: 'Trace', type: 'solid', d: 'Cans & bronze.' },
+            { n: 51, s: 'Sb', name: 'Antimony', m: '121.76', a: 'Trace', type: 'solid', d: 'Batteries & bullets.' },
+            { n: 52, s: 'Te', name: 'Tellurium', m: '127.60', a: 'Trace', type: 'solid', d: 'Solar panels.' },
+            { n: 53, s: 'I', name: 'Iodine', m: '126.90', a: 'Trace', type: 'solid', d: 'Disinfectant. Thyroid.' },
+            { n: 54, s: 'Xe', name: 'Xenon', m: '131.29', a: 'Trace', type: 'gas', d: 'Ion thrusters for space.' },
+            { n: 55, s: 'Cs', name: 'Cesium', m: '132.90', a: 'Trace', type: 'solid', d: 'Atomic clocks.' },
+            { n: 56, s: 'Ba', name: 'Barium', m: '137.32', a: '0.04%', type: 'solid', d: 'Medical imaging.' },
+            { n: 57, s: 'La', name: 'Lanthanum', m: '138.90', a: 'Trace', type: 'solid', d: 'Hybrid car batteries.' },
+            { n: 58, s: 'Ce', name: 'Cerium', m: '140.11', a: 'Trace', type: 'solid', d: 'Lighter flints.' },
+            { n: 59, s: 'Pr', name: 'Praseodymium', m: '140.90', a: 'Trace', type: 'solid', d: 'Goggles & magnets.' },
+            { n: 60, s: 'Nd', name: 'Neodymium', m: '144.24', a: 'Trace', type: 'solid', d: 'Strongest magnets.' },
+            { n: 61, s: 'Pm', name: 'Promethium', m: '145', a: 'Synth', type: 'solid', d: 'Nuclear batteries.' },
+            { n: 62, s: 'Sm', name: 'Samarium', m: '150.36', a: 'Trace', type: 'solid', d: 'Magnets & lasers.' },
+            { n: 63, s: 'Eu', name: 'Europium', m: '151.96', a: 'Trace', type: 'solid', d: 'Red color in TV.' },
+            { n: 64, s: 'Gd', name: 'Gadolinium', m: '157.25', a: 'Trace', type: 'solid', d: 'MRI contrast.' },
+            { n: 65, s: 'Tb', name: 'Terbium', m: '158.92', a: 'Trace', type: 'solid', d: 'Green phosphors.' },
+            { n: 66, s: 'Dy', name: 'Dysprosium', m: '162.50', a: 'Trace', type: 'solid', d: 'Hard drive disks.' },
+            { n: 67, s: 'Ho', name: 'Holmium', m: '164.93', a: 'Trace', type: 'solid', d: 'Lasers.' },
+            { n: 68, s: 'Er', name: 'Erbium', m: '167.25', a: 'Trace', type: 'solid', d: 'Fiber optics.' },
+            { n: 69, s: 'Tm', name: 'Thulium', m: '168.93', a: 'Trace', type: 'solid', d: 'Laser surgery.' },
+            { n: 70, s: 'Yb', name: 'Ytterbium', m: '173.05', a: 'Trace', type: 'solid', d: 'Clocks & lasers.' },
+            { n: 71, s: 'Lu', name: 'Lutetium', m: '174.96', a: 'Trace', type: 'solid', d: 'Cancer therapy.' },
+            { n: 72, s: 'Hf', name: 'Hafnium', m: '178.49', a: 'Trace', type: 'solid', d: 'Nuclear control rods.' },
+            { n: 73, s: 'Ta', name: 'Tantalum', m: '180.94', a: 'Trace', type: 'solid', d: 'Mobile phones.' },
+            { n: 74, s: 'W', name: 'Tungsten', m: '183.84', a: 'Trace', type: 'solid', d: 'Light bulb filaments.' },
+            { n: 75, s: 'Re', name: 'Rhenium', m: '186.20', a: 'Trace', type: 'solid', d: 'Jet engines.' },
+            { n: 76, s: 'Os', name: 'Osmium', m: '190.23', a: 'Trace', type: 'solid', d: 'Densest element.' },
+            { n: 77, s: 'Ir', name: 'Iridium', m: '192.21', a: 'Trace', type: 'solid', d: 'Dinosaur extinction evidence.' },
+            { n: 78, s: 'Pt', name: 'Platinum', m: '195.08', a: 'Trace', type: 'solid', d: 'Jewelry & catalysts.' },
+            { n: 79, s: 'Au', name: 'Gold', m: '196.96', a: 'Trace', type: 'solid', d: 'Wealth & electronics.' },
+            { n: 80, s: 'Hg', name: 'Mercury', m: '200.59', a: 'Trace', type: 'liquid', d: 'Thermometers.' },
+            { n: 81, s: 'Tl', name: 'Thallium', m: '204.38', a: 'Trace', type: 'solid', d: 'Toxic. Rat poison.' },
+            { n: 82, s: 'Pb', name: 'Lead', m: '207.2', a: '0.001%', type: 'solid', d: 'Weights & shields.' },
+            { n: 83, s: 'Bi', name: 'Bismuth', m: '208.98', a: 'Trace', type: 'solid', d: 'Pepto-Bismol.' },
+            { n: 84, s: 'Po', name: 'Polonium', m: '209', a: 'Trace', type: 'solid', d: 'Highly radioactive.' },
+            { n: 85, s: 'At', name: 'Astatine', m: '210', a: 'Trace', type: 'solid', d: 'Rarest natural element.' },
+            { n: 86, s: 'Rn', name: 'Radon', m: '222', a: 'Trace', type: 'gas', d: 'Radioactive gas.' },
+            { n: 87, s: 'Fr', name: 'Francium', m: '223', a: 'Trace', type: 'solid', d: 'Explodes instantly.' },
+            { n: 88, s: 'Ra', name: 'Radium', m: '226', a: 'Trace', type: 'solid', d: 'Glow in dark paint.' },
+            { n: 89, s: 'Ac', name: 'Actinium', m: '227', a: 'Trace', type: 'solid', d: 'Neutron source.' },
+            { n: 90, s: 'Th', name: 'Thorium', m: '232.03', a: 'Trace', type: 'solid', d: 'Nuclear fuel.' },
+            { n: 91, s: 'Pa', name: 'Protactinium', m: '231.03', a: 'Trace', type: 'solid', d: 'Radioactive waste.' },
+            { n: 92, s: 'U', name: 'Uranium', m: '238.02', a: 'Trace', type: 'solid', d: 'Nuclear power.' },
+            { n: 93, s: 'Np', name: 'Neptunium', m: '237', a: 'Trace', type: 'solid', d: 'Nuclear reactors.' },
+            { n: 94, s: 'Pu', name: 'Plutonium', m: '244', a: 'Trace', type: 'solid', d: 'Nuclear weapons.' },
+            { n: 95, s: 'Am', name: 'Americium', m: '243', a: 'Synth', type: 'solid', d: 'Smoke detectors.' },
+            { n: 96, s: 'Cm', name: 'Curium', m: '247', a: 'Synth', type: 'solid', d: 'Mars rovers.' },
+            { n: 97, s: 'Bk', name: 'Berkelium', m: '247', a: 'Synth', type: 'solid', d: 'Scientific research.' },
+            { n: 98, s: 'Cf', name: 'Californium', m: '251', a: 'Synth', type: 'solid', d: 'Metal detector.' },
+            { n: 99, s: 'Es', name: 'Einsteinium', m: '252', a: 'Synth', type: 'solid', d: 'Synthesized element.' },
+            { n: 100, s: 'Fm', name: 'Fermium', m: '257', a: 'Synth', type: 'solid', d: 'Synthesized element.' },
+            { n: 101, s: 'Md', name: 'Mendelevium', m: '258', a: 'Synth', type: 'solid', d: 'Named after Mendeleev.' },
+            { n: 102, s: 'No', name: 'Nobelium', m: '259', a: 'Synth', type: 'solid', d: 'Named after Nobel.' },
+            { n: 103, s: 'Lr', name: 'Lawrencium', m: '266', a: 'Synth', type: 'solid', d: 'End of actinides.' },
+            { n: 104, s: 'Rf', name: 'Rutherfordium', m: '267', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 105, s: 'Db', name: 'Dubnium', m: '268', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 106, s: 'Sg', name: 'Seaborgium', m: '269', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 107, s: 'Bh', name: 'Bohrium', m: '270', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 108, s: 'Hs', name: 'Hassium', m: '277', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 109, s: 'Mt', name: 'Meitnerium', m: '278', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 110, s: 'Ds', name: 'Darmstadtium', m: '281', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 111, s: 'Rg', name: 'Roentgenium', m: '282', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 112, s: 'Cn', name: 'Copernicium', m: '285', a: 'Synth', type: 'liquid', d: 'Volatile metal.' },
+            { n: 113, s: 'Nh', name: 'Nihonium', m: '286', a: 'Synth', type: 'solid', d: 'Created in Japan.' },
+            { n: 114, s: 'Fl', name: 'Flerovium', m: '289', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 115, s: 'Mc', name: 'Moscovium', m: '290', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 116, s: 'Lv', name: 'Livermorium', m: '293', a: 'Synth', type: 'solid', d: 'Radioactive.' },
+            { n: 117, s: 'Ts', name: 'Tennessine', m: '294', a: 'Synth', type: 'solid', d: 'Halogen group.' },
+            { n: 118, s: 'Og', name: 'Oganesson', m: '294', a: 'Synth', type: 'gas', d: 'Heaviest element known.' }
+        ];
+
+
+        let currentMix = [];
+        let selectedEl = null;
+
+        // --- RENDER TABLE ---
+        function renderTable(sortType) {
+            const table = document.getElementById('periodic-table');
+            table.innerHTML = '';
+            
+            // Sorting logic for Mendeleev Mode
+            let data = [...elementsDB];
+            if(sortType === 'mendeleev') {
+                data.sort((a, b) => parseFloat(a.m) - parseFloat(b.m)); // Sort by Mass
+            } else {
+                data.sort((a, b) => a.n - b.n); // Sort by Number (Modern)
+            }
+
+            data.forEach(el => {
+                const div = document.createElement('div');
+                div.className = `element ${el.type}`;
+                div.innerHTML = `<span class="num">${el.n}</span><span class="sym">${el.s}</span><span class="name">${el.name}</span>`;
+                div.onclick = () => showInfo(el);
+                table.appendChild(div);
+            });
+        }
+
+        // --- INTERACTION ---
+        function showInfo(el) {
+            selectedEl = el;
+            document.getElementById('modal-sym').innerText = el.s;
+            document.getElementById('modal-name').innerText = el.name;
+            document.getElementById('modal-num').innerText = el.n;
+            document.getElementById('modal-mass').innerText = el.m + " u";
+            document.getElementById('modal-abun').innerText = el.a;
+            document.getElementById('modal-desc').innerText = el.d;
+            document.getElementById('info-modal').style.display = 'block';
+        }
+
+        function closeModal() { document.getElementById('info-modal').style.display = 'none'; }
+
+        function addToMix() {
+            if(selectedEl) {
+                if(currentMix.length < 3) {
+                    currentMix.push(selectedEl.s);
+                    updateMixUI();
+                    closeModal();
+                } else {
+                    alert("Mixing Jar is Full! (Max 3)");
+                }
+            }
+        }
+
+        function updateMixUI() {
+            document.getElementById('selected-list').innerText = currentMix.join(" + ");
+            document.getElementById('reaction-result').innerText = "";
+        }
+
+        function clearMix() {
+            currentMix = [];
+            updateMixUI();
+        }
+
+        function setMode(mode) {
+            document.querySelectorAll('.controls .btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTable(mode);
+        }
+
+        // --- THE REACTION ENGINE (Logic) ---
+        function react() {
+            const mix = currentMix.sort().join("+"); // Sort taaki H+O aur O+H same ho
+            const res = document.getElementById('reaction-result');
+
+            // CHEMICAL DATABASE (Formulas)
+            const reactions = {
+                "H+H+O": "🌊 WATER (H₂O) - Life Sustaining Liquid!",
+                "H+O": "💧 Hydroxyl Radical (OH) - Unstable!",
+                "Cl+Na": "🧂 SALT (NaCl) - Edible Table Salt!",
+                "C+O+O": "🌫️ Carbon Dioxide (CO₂) - Greenhouse Gas!",
+                "C+O": "☠️ Carbon Monoxide (CO) - Toxic Gas!",
+                "Fe+O": "⚙️ Rust (Iron Oxide) - Slow Oxidation!",
+                "H+Cl": "⚠️ Hydrochloric Acid (HCl) - Corrosive Acid!",
+                "H+H": "🎈 Hydrogen Gas (H₂) - Explosive!",
+                "O+O": "🌬️ Oxygen Gas (O₂) - Breathable Air!",
+                "Na+H+O": "💥 Sodium Hydroxide + Hydrogen (Explosion!)"
+            };
+
+            if (reactions[mix]) {
+                res.innerHTML = reactions[mix];
+                res.style.color = "#00ffcc";
+            } else if (currentMix.length < 2) {
+                res.innerHTML = "Needs at least 2 elements.";
+                res.style.color = "gray";
+            } else {
+                res.innerHTML = "🧪 Unknown Mixture or No Reaction defined.";
+                res.style.color = "yellow";
+            }
+        }
+
+        // Start
+        renderTable('modern');
+    </script>
+    <div id="google_translate_element" style="position:fixed; bottom:10px; right:10px; z-index:1000; opacity:0.8;"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,bn,te,mr,ta,ur,gu,kn,ml,or,pa,as,mai,sa',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

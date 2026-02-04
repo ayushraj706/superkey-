@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Time Machine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- FACEBOOK STYLE VARIABLES --- */
+        :root {
+            --bg-color: #f0f2f5;       /* Facebook Light BG */
+            --card-bg: #ffffff;        /* White Card */
+            --text-main: #050505;      /* Black Text */
+            --text-sec: #65676b;       /* Gray Text */
+            --accent: #1877f2;         /* FB Blue */
+            --shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            --border: #ddd;
+        }
+
+        /* DARK MODE VARIABLES */
+        [data-theme="dark"] {
+            --bg-color: #18191a;       /* FB Dark BG */
+            --card-bg: #242526;        /* Dark Card */
+            --text-main: #e4e6eb;      /* White Text */
+            --text-sec: #b0b3b8;       /* Light Gray */
+            --accent: #45bd62;         /* Green Accent */
+            --shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            --border: #3e4042;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* --- NAVBAR --- */
+        header {
+            background: var(--card-bg);
+            padding: 10px 20px;
+            position: fixed; top: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo { font-size: 20px; font-weight: bold; color: var(--accent); text-decoration: none; }
+        
+        .toggle-btn {
+            background: var(--bg-color);
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- FEED CONTAINER --- */
+        .feed-container {
+            max-width: 600px;
+            margin: 80px auto 20px auto; /* Top margin for fixed header */
+            padding: 0 10px;
+        }
+
+        /* --- POST CARD --- */
+        .post {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .post-header {
+            padding: 15px;
+            display: flex; align-items: center;
+        }
+        .avatar {
+            width: 40px; height: 40px;
+            background: var(--text-sec);
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: bold;
+        }
+        .user-info h4 { margin: 0; font-size: 16px; color: var(--text-main); }
+        .user-info span { font-size: 12px; color: var(--text-sec); }
+
+        .post-content {
+            padding: 0 15px 15px 15px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .post-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #000;
+        }
+
+        .post-footer {
+            padding: 10px 15px;
+            border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around;
+        }
+        .action-btn {
+            background: none; border: none;
+            color: var(--text-sec);
+            font-weight: 600; cursor: pointer;
+            font-size: 14px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .action-btn:hover { color: var(--text-main); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Google Translate Hider (Clean Look) */
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">⬅ Time Machine</a>
+        
+        <button class="toggle-btn" onclick="toggleTheme()" id="theme-icon">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
+
+    <div class="feed-container" id="feed">
+        </div>
+
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <script type="text/javascript">
+        // --- 1. THEME LOGIC (PERSISTENT) ---
+        const themeBtn = document.getElementById('theme-icon');
+        
+        // Check saved setting on load
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                // Switch to Light
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light'); // Save setting
+                themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                // Switch to Dark
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark'); // Save setting
+                themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+        }
+
+        // --- 2. INFINITE POST GENERATOR ---
+        const historyData = [
+            { name: "Albert Einstein", date: "1905", text: "Just published my paper on Special Relativity. Time is relative, my friends! 🕰️ #Physics #E_mc2", likes: "1.2M" },
+            { name: "Wright Brothers", date: "1903", text: "We did it! The first powered flight lasted 12 seconds. It's a small jump, but a giant leap for travel. ✈️", likes: "890K" },
+            { name: "Aryabhata", date: "476 AD", text: "Calculated the value of Pi (π) approx 3.1416. Also, the earth rotates on its axis. 🌍 #Maths #India", likes: "5M" },
+            { name: "Neil Armstrong", date: "1969", text: "That's one small step for man, one giant leap for mankind. The moon dust smells like gunpowder! 🌕", likes: "3B" },
+            { name: "Alexander the Great", date: "326 BC", text: "Just reached the Indus river. India is magnificent. Thinking of turning back though, troops are tired. ⚔️", likes: "400K" },
+            { name: "Newton", date: "1687", text: "An apple just hit my head. I think I discovered something about Gravity. 🍎", likes: "2.1M" }
+        ];
+
+        const feed = document.getElementById('feed');
+
+        function createPost(data) {
+            const div = document.createElement('div');
+            div.className = 'post';
+            div.innerHTML = `
+                <div class="post-header">
+                    <div class="avatar">${data.name[0]}</div>
+                    <div class="user-info">
+                        <h4>${data.name}</h4>
+                        <span>${data.date} • <i class="fas fa-globe-americas"></i> Public</span>
+                    </div>
+                </div>
+                <div class="post-content">
+                    ${data.text}
+                </div>
+                <div class="post-footer">
+                    <button class="action-btn"><i class="far fa-thumbs-up"></i> Like (${data.likes})</button>
+                    <button class="action-btn"><i class="far fa-comment"></i> Comment</button>
+                    <button class="action-btn"><i class="fas fa-share"></i> Share</button>
+                </div>
+            `;
+            return div;
+        }
+
+        // Load initial posts
+        historyData.forEach(item => {
+            feed.appendChild(createPost(item));
+        });
+
+        // Infinite Scroll Logic (Fake Loader)
+        window.onscroll = function() {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                // Add random post when user reaches bottom
+                const random = historyData[Math.floor(Math.random() * historyData.length)];
+                feed.appendChild(createPost(random));
+            }
+        };
+
+        // Translate Init
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn,te,mr'}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

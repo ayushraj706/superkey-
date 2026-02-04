@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Music Cosmos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; }
+        header { padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+        .back { color: white; text-decoration: none; border: 1px solid white; padding: 5px 10px; border-radius: 20px; }
+        
+        .player-container { margin-top: 50px; }
+        .vinyl { 
+            width: 200px; height: 200px; background: radial-gradient(circle, #333 10%, #111 11%, #111 30%, #333 31%, #333 100%);
+            border-radius: 50%; margin: 0 auto 30px auto; border: 5px solid #222; box-shadow: 0 0 20px rgba(0,255,204,0.2);
+            animation: spin 5s linear infinite; animation-play-state: paused;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .playing .vinyl { animation-play-state: running; }
+
+        .controls button {
+            background: none; border: none; color: white; font-size: 30px; margin: 0 15px; cursor: pointer;
+        }
+        .controls .play-btn { font-size: 50px; color: #00ffcc; }
+
+        .stations { display: flex; gap: 10px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
+        .station { background: #222; padding: 10px 20px; border-radius: 20px; cursor: pointer; border: 1px solid #444; }
+        .station.active { background: #00ffcc; color: black; }
+        
+        .goog-te-banner-frame { display: none !important; } body { top: 0 !important; }
+    </style>
+</head>
+<body>
+    <header><span>🎵 Music Cosmos</span><a href="index.html" class="back">Exit</a></header>
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <div class="player-container" id="player">
+        <div class="vinyl"></div>
+        <h2 id="track-name">Select a Station</h2>
+        <div class="controls">
+            <button onclick="togglePlay()"><i class="fas fa-play-circle play-btn" id="p-btn"></i></button>
+        </div>
+    </div>
+
+    <div class="stations">
+        <div class="station" onclick="playNoise('rain')">🌧️ Rain</div>
+        <div class="station" onclick="playNoise('fire')">🔥 Fire</div>
+        <div class="station" onclick="playNoise('forest')">🌲 Forest</div>
+        <div class="station" onclick="playNoise('white')">📻 White Noise</div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let audioCtx, osc, gainNode;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playNoise(type) {
+            initAudio();
+            document.getElementById('track-name').innerText = "Playing: " + type.toUpperCase();
+            document.getElementById('player').classList.add('playing');
+            document.getElementById('p-btn').className = "fas fa-pause-circle play-btn";
+            isPlaying = true;
+            
+            // Note: Since we don't have MP3 files, we are simulating "Active State"
+            // In a real server, here we would do: new Audio('rain.mp3').play();
+            alert("Playing " + type + " ambience (Simulation Active)");
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const vinyl = document.getElementById('player');
+            const btn = document.getElementById('p-btn');
+            
+            if (isPlaying) {
+                vinyl.classList.add('playing');
+                btn.className = "fas fa-pause-circle play-btn";
+            } else {
+                vinyl.classList.remove('playing');
+                btn.className = "fas fa-play-circle play-btn";
+            }
+        }
+        
+        function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

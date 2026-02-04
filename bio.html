@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperKey Bio-Lab | Human Reproduction</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; background-color: #0f172a; color: white; }
+        
+        /* Layout */
+        #container { display: flex; height: 100vh; }
+        
+        /* 3D View Area */
+        #canvas-container { flex: 3; position: relative; background: radial-gradient(circle at center, #1e293b 0%, #000 100%); }
+        
+        /* Information Sidebar (Right Side) */
+        #sidebar { flex: 1; background: #1e293b; padding: 20px; border-left: 2px solid #334155; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.5); }
+        
+        /* UI Elements */
+        h1 { font-size: 24px; color: #38bdf8; margin-bottom: 10px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        h2 { font-size: 18px; color: #fbbf24; margin-top: 20px; }
+        p, li { font-size: 14px; line-height: 1.6; color: #cbd5e1; }
+        
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        
+        .btn-male { background: #3b82f6; color: white; }
+        .btn-male:hover { background: #2563eb; }
+        
+        .btn-female { background: #ec4899; color: white; }
+        .btn-female:hover { background: #db2777; }
+        
+        .highlight-box { background: #334155; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 3px solid #38bdf8; }
+        
+        /* Loader */
+        #loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #38bdf8; font-size: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="canvas-container">
+        <div id="loader">Loading 3D Model...</div>
+    </div>
+
+    <div id="sidebar">
+        <h1>SuperKey Bio-Lab 🔬</h1>
+        <p>Class 10: How do Organisms Reproduce?</p>
+        
+        <div class="controls">
+            <button class="btn-male" onclick="switchMode('male')">♂ Male System</button>
+            <button class="btn-female" onclick="switchMode('female')">♀ Female System</button>
+        </div>
+
+        <div id="info-content">
+            <h2>स्वागत है!</h2>
+            <p>कृपया ऊपर दिए गए बटन्स का उपयोग करके 3D मॉडल चुनें।</p>
+            <p>यहाँ आपको बिहार बोर्ड परीक्षा के लिए महत्वपूर्ण नोट्स दिखेंगे।</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+    // --- DATA: Exam Notes (Class 10 Syllabus) ---
+    const biologyData = {
+        male: {
+            title: "Male Reproductive System (नर जनन तंत्र)",
+            details: `
+                <ul>
+                    <li><b>Testis (वृषण):</b> यहाँ शुक्राणु (Sperm) और टेस्टोस्टेरोन हार्मोन बनते हैं। यह शरीर के बाहर Scrotum में होता है ताकि तापमान कम रहे।</li>
+                    <li><b>Vas Deferens (शुक्रवाहिका):</b> यह शुक्राणुओं को Testis से Urethra तक ले जाती है।</li>
+                    <li><b>Prostate Gland:</b> यह एक तरल पदार्थ बनाता है जो शुक्राणुओं को पोषण देता है।</li>
+                    <li><b>Urethra (मूत्रमार्ग):</b> यह मूत्र और वीर्य (Sperm) दोनों के लिए एक ही रास्ता है।</li>
+                </ul>
+                <div class='highlight-box'>
+                    <b>VVI Question:</b> वृषण उदर गुहा के बाहर क्यों होते हैं? <br>
+                    <i>उत्तर: क्योंकि शुक्राणु बनने के लिए शरीर के तापमान से 2-3°C कम तापमान चाहिए।</i>
+                </div>
+            `
+        },
+        female: {
+            title: "Female Reproductive System (मादा जनन तंत्र)",
+            details: `
+                <ul>
+                    <li><b>Ovary (अंडाशय):</b> यहाँ मादा युग्मक (Egg) और एस्ट्रोजन हार्मोन बनते हैं।</li>
+                    <li><b>Fallopian Tube (अंडवाहिका):</b> **निषेचन (Fertilization)** यहीं होता है।</li>
+                    <li><b>Uterus (गर्भाशय):</b> यहाँ भ्रूण (Baby) का विकास होता है।</li>
+                    <li><b>Cervix & Vagina:</b> यह जन्म नाली (Birth Canal) बनाते हैं।</li>
+                </ul>
+                <div class='highlight-box'>
+                    <b>VVI Question:</b> प्लेसेंटा (Placenta) का क्या कार्य है? <br>
+                    <i>उत्तर: यह माँ के रक्त से भ्रूण को पोषण और ऑक्सीजन देता है।</i>
+                </div>
+            `
+        }
+    };
+
+    // --- 3D SETUP ---
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    // Controls
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // Placeholder Models (Since I can't upload files)
+    let currentMesh = null;
+
+    function createPlaceholder(type) {
+        if(currentMesh) scene.remove(currentMesh);
+
+        let geometry, material;
+        
+        if(type === 'male') {
+            // Blue Capsule representing Male Structure
+            geometry = new THREE.CapsuleGeometry(1, 4, 4, 8);
+            material = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.3 });
+        } else {
+            // Pink Sphere representing Female Structure
+            geometry = new THREE.SphereGeometry(2, 32, 16);
+            material = new THREE.MeshStandardMaterial({ color: 0xec4899, roughness: 0.3 });
+        }
+
+        currentMesh = new THREE.Mesh(geometry, material);
+        scene.add(currentMesh);
+    }
+
+    camera.position.z = 8;
+
+    // --- FUNCTIONALITY ---
+    function switchMode(gender) {
+        // 1. Update Text Info
+        const infoDiv = document.getElementById('info-content');
+        const data = biologyData[gender];
+        infoDiv.innerHTML = `<h2>${data.title}</h2>${data.details}`;
+
+        // 2. Load 3D Model (Here we simulate with shapes)
+        // Note: Asli website me yaha loader.load('male_model.glb') ayega
+        createPlaceholder(gender);
+    }
+
+    // Animation Loop
+    function animate() {
+        requestAnimationFrame(animate);
+        if(currentMesh) {
+            currentMesh.rotation.y += 0.005; // Dheere dheere ghumega
+        }
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // Window Resize Handle
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+</script>
+</body>
+</html>

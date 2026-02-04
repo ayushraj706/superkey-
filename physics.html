@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Physics Sandbox</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden; /* No scrollbars */
+        }
+
+        /* HEADER */
+        header {
+            position: absolute; top: 0; left: 0; width: 100%;
+            padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            pointer-events: none; /* Let clicks pass through to canvas */
+            z-index: 10;
+        }
+        .title { font-size: 20px; font-weight: bold; pointer-events: auto; }
+        .back-btn { 
+            text-decoration: none; color: #00ffcc; border: 1px solid #00ffcc; 
+            padding: 5px 15px; border-radius: 20px; font-size: 14px; 
+            pointer-events: auto; background: rgba(0,0,0,0.8);
+        }
+
+        /* CONTROLS (Bottom) */
+        .controls {
+            position: absolute; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; gap: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 50px;
+            pointer-events: auto;
+            border: 1px solid #555;
+        }
+
+        .btn {
+            background: #333; color: white; border: none;
+            padding: 10px 20px; border-radius: 20px;
+            cursor: pointer; font-weight: bold; transition: 0.2s;
+        }
+        .btn:hover { background: #555; }
+        .btn.active { background: #00ffcc; color: black; }
+        .btn-clear { background: #ff4444; color: white; }
+
+        /* CANVAS */
+        canvas { display: block; width: 100vw; height: 100vh; }
+
+        /* INSTRUCTION */
+        .hint {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 24px; pointer-events: none;
+            text-align: center;
+        }
+
+        /* GOOGLE HACK */
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="title">⚛️ Physics Sandbox</div>
+        <a href="index.html" class="back-btn">Exit</a>
+    </header>
+
+    <div class="hint" id="hint-text">Tap anywhere to spawn objects<br>Drag to throw them</div>
+
+    <div class="controls">
+        <button class="btn active" onclick="setGravity(0.5, this)">Earth 🌍</button>
+        <button class="btn" onclick="setGravity(0, this)">Space 🌑</button>
+        <button class="btn" onclick="setGravity(1.5, this)">Jupiter 🟠</button>
+        <button class="btn btn-clear" onclick="clear balls = []">Clear 🗑️</button>
+    </div>
+
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <canvas id="simCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        // --- PHYSICS VARIABLES ---
+        let balls = [];
+        let gravity = 0.5;
+        const friction = 0.99; // Air resistance
+        const bounce = 0.7; // Energy lost on bounce
+
+        // Resize Canvas
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- BALL CLASS ---
+        class Ball {
+            constructor(x, y, vx, vy, radius, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx; // Velocity X
+                this.vy = vy; // Velocity Y
+                this.radius = radius;
+                this.color = color;
+            }
+
+            update() {
+                // Apply Gravity
+                this.vy += gravity;
+                
+                // Apply Friction
+                this.vx *= friction;
+                this.vy *= friction;
+
+                // Move
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Floor Collision
+                if (this.y + this.radius > height) {
+                    this.y = height - this.radius;
+                    this.vy *= -bounce;
+                }
+                // Ceiling Collision
+                else if (this.y - this.radius < 0) {
+                    this.y = this.radius;
+                    this.vy *= -bounce;
+                }
+
+                // Wall Collision
+                if (this.x + this.radius > width) {
+                    this.x = width - this.radius;
+                    this.vx *= -bounce;
+                } else if (this.x - this.radius < 0) {
+                    this.x = this.radius;
+                    this.vx *= -bounce;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        // --- INPUT HANDLING (Touch/Mouse) ---
+        let isDragging = false;
+        let startX, startY;
+
+        canvas.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX, e.touches[0].clientY));
+
+        canvas.addEventListener('mouseup', (e) => endDrag(e.clientX, e.clientY));
+        canvas.addEventListener('touchend', (e) => endDrag(e.changedTouches[0].clientX, e.changedTouches[0].clientY));
+
+        function startDrag(x, y) {
+            isDragging = true;
+            startX = x;
+            startY = y;
+            document.getElementById('hint-text').style.display = 'none'; // Hide hint
+        }
+
+        function endDrag(x, y) {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            // Calculate throw velocity
+            const vx = (x - startX) * 0.15;
+            const vy = (y - startY) * 0.15;
+            
+            // Random Color generator
+            const colors = ['#ff0000', '#00ffcc', '#ffff00', '#ff00ff', '#0099ff'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Random Size
+            const size = Math.random() * 20 + 10;
+
+            // Spawn Ball
+            balls.push(new Ball(startX, startY, vx, vy, size, color));
+        }
+
+        // --- CONTROLS ---
+        function setGravity(g, btn) {
+            gravity = g;
+            // Update buttons
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            ctx.clearRect(0, 0, width, height); // Clear screen
+
+            balls.forEach(ball => {
+                ball.update();
+                ball.draw();
+            });
+
+            // Draw drag line if throwing
+            if (isDragging) {
+                // We can add a line indicator here later if needed
+            }
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Translate Init
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn'}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Daily Quote</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #111; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+        .card { background: #222; padding: 40px; border-radius: 20px; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
+        .quote-text { font-size: 24px; font-style: italic; margin-bottom: 20px; color: #eee; }
+        .author { font-size: 16px; color: #00ffcc; font-weight: bold; margin-bottom: 30px; display: block; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; }
+        button { padding: 10px 20px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .new-btn { background: #00ffcc; color: black; }
+        .copy-btn { background: #333; color: white; border: 1px solid #555; }
+        button:hover { transform: scale(1.05); }
+        .goog-te-banner-frame { display: none !important; } body { top: 0 !important; }
+    </style>
+</head>
+<body>
+    <div id="google_translate_element" style="display:none;"></div>
+    
+    <div class="card">
+        <i class="fas fa-quote-left" style="color:#444; font-size: 30px; margin-bottom: 10px;"></i>
+        <div class="quote-text" id="q-text">Loading...</div>
+        <span class="author" id="q-author"></span>
+        
+        <div class="btn-group">
+            <button class="new-btn" onclick="newQuote()">✨ New Quote</button>
+            <button class="copy-btn" onclick="copyQuote()"><i class="far fa-copy"></i> Copy</button>
+            <a href="index.html" style="text-decoration:none;"><button class="copy-btn">Exit</button></a>
+        </div>
+    </div>
+
+    <script>
+        const quotes = [
+            { t: "The only way to do great work is to love what you do.", a: "Steve Jobs" },
+            { t: "Technology is best when it brings people together.", a: "Matt Mullenweg" },
+            { t: "It always seems impossible until it is done.", a: "Nelson Mandela" },
+            { t: "Code is like humor. When you have to explain it, it’s bad.", a: "Cory House" },
+            { t: "Simplicity is the soul of efficiency.", a: "Austin Freeman" },
+            { t: "Dream big, work hard, stay focused.", a: "Unknown" }
+        ];
+
+        function newQuote() {
+            const r = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('q-text').innerText = `"${r.t}"`;
+            document.getElementById('q-author').innerText = "- " + r.a;
+        }
+
+        function copyQuote() {
+            const text = document.getElementById('q-text').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Copied to clipboard!");
+        }
+
+        newQuote();
+        function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

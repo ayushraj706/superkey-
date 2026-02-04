@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Vedic Archives</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- MODERN GURUKUL THEME --- */
+        :root {
+            --bg-color: #1a0a00; /* Deep Dark Brown */
+            --card-bg: #2b1200;
+            --text-main: #ffcc99;
+            --accent: #ff9933; /* Saffron (Bhagwa) */
+            --border: #4d2600;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Georgia', serif;
+            margin: 0; padding: 20px;
+        }
+
+        /* HEADER */
+        header {
+            text-align: center; margin-bottom: 30px;
+            border-bottom: 2px solid var(--accent); padding-bottom: 20px;
+            position: relative;
+        }
+        .om-symbol { font-size: 50px; color: var(--accent); display: block; margin-bottom: 10px; animation: glow 2s infinite alternate; }
+        .title { font-size: 28px; font-weight: bold; text-transform: uppercase; letter-spacing: 3px; color: white; }
+        .subtitle { font-size: 14px; color: #cc8800; font-family: sans-serif; }
+        
+        .back-btn { 
+            position: absolute; top: 10px; left: 0; 
+            text-decoration: none; color: var(--accent); border: 1px solid var(--accent); 
+            padding: 5px 15px; border-radius: 20px; font-size: 12px; font-family: sans-serif;
+        }
+
+        @keyframes glow { from { text-shadow: 0 0 10px #ff9933; } to { text-shadow: 0 0 20px #ffcc00; } }
+
+        /* SEARCH BAR */
+        .search-container {
+            max-width: 600px; margin: 0 auto 40px auto; position: relative;
+        }
+        .search-input {
+            width: 100%; padding: 15px 50px 15px 20px;
+            border-radius: 30px; border: 2px solid var(--border);
+            background: #000; color: var(--accent); font-size: 18px; outline: none;
+        }
+        .search-input:focus { border-color: var(--accent); }
+        .search-icon { position: absolute; right: 20px; top: 18px; color: var(--accent); }
+
+        /* SHLOKA GRID */
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 15px; padding: 20px;
+            transition: transform 0.3s; position: relative;
+            border-top: 5px solid var(--accent);
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(255, 153, 51, 0.2); }
+
+        .sanskrit { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 10px; line-height: 1.6; }
+        .meaning { font-size: 14px; color: #d9d9d9; margin-bottom: 15px; font-style: italic; }
+        .source { font-size: 10px; text-transform: uppercase; color: var(--accent); font-weight: bold; letter-spacing: 1px; }
+
+        /* AUDIO BUTTON */
+        .play-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(0,0,0,0.5); color: var(--accent);
+            border: 1px solid var(--accent); border-radius: 50%;
+            width: 35px; height: 35px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .play-btn:hover { background: var(--accent); color: #000; }
+        .playing { animation: pulse 1s infinite; background: var(--accent); color: #000; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* GOOGLE HACK */
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="back-btn">⬅ Dashboard</a>
+        <div class="om-symbol">🕉️</div>
+        <div class="title">Vedic Archives</div>
+        <div class="subtitle">Ancient Wisdom for Modern Minds</div>
+    </header>
+
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search Shlokas (e.g. Karma, Vidya)..." onkeyup="filterShlokas()">
+        <i class="fas fa-search search-icon"></i>
+    </div>
+
+    <div id="shloka-grid" class="grid">
+        </div>
+
+    <script>
+        // --- 1. SHLOKA DATABASE ---
+        const shlokas = [
+            { 
+                text: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥", 
+                mean: "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action.",
+                source: "Bhagavad Gita 2.47",
+                tags: "karma duty work gita"
+            },
+            { 
+                text: "यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम्॥", 
+                mean: "Whenever there is a decline in righteousness and an increase in unrighteousness, I manifest myself.",
+                source: "Bhagavad Gita 4.7",
+                tags: "dharma god krishna gita"
+            },
+            { 
+                text: "विद्या ददाति विनयं, विनयाद् याति पात्रताम्।\nपात्रत्वात् धनमाप्नोति, धनात् धर्मं ततः सुखम्॥", 
+                mean: "Knowledge gives humility, from humility comes worthiness, from worthiness one gets wealth, from wealth righteousness, and then happiness.",
+                source: "Hitopadesha",
+                tags: "vidya knowledge education student"
+            },
+            { 
+                text: "ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं\nभर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्॥", 
+                mean: "We meditate on the glory of the Creator; Who has created the Universe; May He enlighten our minds.",
+                source: "Gayatri Mantra (Rigveda)",
+                tags: "mantra sun prayer om"
+            },
+            { 
+                text: "वसुधैव कुटुम्बकम्", 
+                mean: "The world is one family.",
+                source: "Maha Upanishad",
+                tags: "world family peace unity"
+            },
+            { 
+                text: "उद्यमेन हि सिध्यन्ति कार्याणि न मनोरथैः।\nन हि सुप्तस्य सिंहस्य प्रविशन्ति मुखे मृगाः॥", 
+                mean: "Works are fulfilled by hard work, not just by thinking. Deer do not enter the mouth of a sleeping lion.",
+                source: "Subhashita",
+                tags: "hardwork success motivation lion"
+            },
+            { 
+                text: "असतो मा सद्गमय। तमसो मा ज्योतिर्गमय।\nमृत्योर्मा अमृतं गमय॥", 
+                mean: "Lead me from lies to truth. Lead me from darkness to light. Lead me from death to immortality.",
+                source: "Brihadaranyaka Upanishad",
+                tags: "prayer truth light peace"
+            },
+            { 
+                text: "गुरुर्ब्रह्मा गुरुर्विष्णुः गुरुर्देवो महेश्वरः।\nगुरुः साक्षात् परब्रह्म तस्मै श्रीगुरवे नमः॥", 
+                mean: "The Guru is Brahma, Vishnu, and Shiva. The Guru is the Supreme Absolute. I bow to that Guru.",
+                source: "Guru Stotram",
+                tags: "guru teacher respect"
+            }
+        ];
+
+        // --- 2. RENDER ENGINE ---
+        const grid = document.getElementById('shloka-grid');
+
+        function render(data) {
+            grid.innerHTML = '';
+            data.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <button class="play-btn" onclick="speak(this, '${item.text.replace(/\n/g, ' ')}')"><i class="fas fa-volume-up"></i></button>
+                    <div class="sanskrit">${item.text.replace(/\n/g, '<br>')}</div>
+                    <div class="meaning">${item.mean}</div>
+                    <div class="source">${item.source}</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+        render(shlokas); // Init load
+
+        // --- 3. AUDIO ENGINE (Text-to-Speech) ---
+        function speak(btn, text) {
+            // Stop any current speech
+            window.speechSynthesis.cancel();
+            
+            // Reset icons
+            document.querySelectorAll('.play-btn').forEach(b => {
+                b.classList.remove('playing');
+                b.innerHTML = '<i class="fas fa-volume-up"></i>';
+            });
+
+            // Setup new speech
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'hi-IN'; // Hindi accent works best for Sanskrit
+            utterance.rate = 0.8; // Slow down for clarity
+            utterance.pitch = 0.9; // Deeper voice
+
+            // Visual feedback
+            btn.classList.add('playing');
+            btn.innerHTML = '<i class="fas fa-stop"></i>';
+
+            utterance.onend = () => {
+                btn.classList.remove('playing');
+                btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- 4. SEARCH ENGINE ---
+        function filterShlokas() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = shlokas.filter(item => 
+                item.tags.includes(query) || 
+                item.mean.toLowerCase().includes(query) ||
+                item.source.toLowerCase().includes(query)
+            );
+            render(filtered);
+        }
+
+        // --- 5. TRANSLATE INIT ---
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn,te,mr'}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

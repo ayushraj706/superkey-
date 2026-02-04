@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Speed Node</title>
+    <style>
+        body { background: #000; color: #00ffcc; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .meter { width: 200px; height: 200px; border: 5px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; position: relative; box-shadow: 0 0 20px #00ffcc; margin-bottom: 20px; }
+        .label { font-size: 14px; color: gray; margin-top: 5px; }
+        .btn { background: transparent; border: 1px solid #00ffcc; color: #00ffcc; padding: 10px 30px; font-size: 18px; cursor: pointer; margin-top: 20px; }
+        .btn:hover { background: #00ffcc; color: black; }
+        .goog-te-banner-frame { display: none !important; } body { top: 0 !important; }
+    </style>
+</head>
+<body>
+    <div id="google_translate_element" style="display:none;"></div>
+    
+    <div class="meter">
+        <div style="text-align:center;">
+            <span id="speed-val">0</span>
+            <div class="label" id="unit">Mbps</div>
+        </div>
+    </div>
+    
+    <div id="status">READY TO TEST</div>
+    <button class="btn" onclick="startTest()">START TEST</button>
+    <a href="index.html" style="color:gray; margin-top:20px; text-decoration:none;">EXIT</a>
+
+    <script>
+        function startTest() {
+            document.getElementById('status').innerText = "CONNECTING TO SERVER...";
+            let speed = 0;
+            const target = navigator.connection ? navigator.connection.downlink : (Math.random() * 50 + 10).toFixed(1); // Real or Fake
+            
+            const interval = setInterval(() => {
+                speed += 0.5;
+                document.getElementById('speed-val').innerText = speed.toFixed(1);
+                
+                if (speed >= target) {
+                    clearInterval(interval);
+                    document.getElementById('status').innerText = "TEST COMPLETE";
+                    document.getElementById('speed-val').innerText = target;
+                    document.querySelector('.meter').style.borderColor = "#00ffcc";
+                }
+            }, 50);
+        }
+        function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

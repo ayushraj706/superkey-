@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseKey - Math Engine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- DESIGN SYSTEM (Dark/Light Sync) --- */
+        :root {
+            --bg-color: #f8f9fa;
+            --text-main: #212529;
+            --card-bg: #ffffff;
+            --accent: #ffc107; /* Math Yellow */
+            --search-bg: #e9ecef;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* AUTO DARK MODE CHECK */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-main: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --accent: #ffca2c;
+            --search-bg: #2d2d2d;
+            --shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 20px;
+            transition: 0.3s;
+        }
+
+        /* --- PROFESSIONAL SEARCH BAR --- */
+        .search-wrapper {
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            font-size: 18px;
+            border-radius: 50px;
+            border: 2px solid transparent;
+            background: var(--search-bg);
+            color: var(--text-main);
+            outline: none;
+            box-shadow: var(--shadow);
+            transition: 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+            background: var(--card-bg);
+        }
+
+        .search-icon {
+            position: absolute; right: 20px; top: 18px;
+            color: gray; font-size: 20px;
+        }
+
+        /* --- FORMULA GRID --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--accent);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+
+        .f-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .f-eq { 
+            font-family: 'Courier New', monospace; 
+            background: rgba(255, 193, 7, 0.1); 
+            padding: 5px 10px; 
+            border-radius: 5px;
+            color: var(--accent);
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .f-desc { font-size: 14px; color: gray; margin-bottom: 15px; }
+
+        .solve-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        /* --- HEADER --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; border-bottom: 2px solid var(--accent); padding-bottom: 10px;
+        }
+        .home-link { text-decoration: none; color: var(--text-main); font-weight: bold; }
+
+        /* --- GOOGLE HACK (Invisible) --- */
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="font-size:24px;">📐 <span style="color:var(--accent);">Math</span> Engine</div>
+        <a href="index.html" class="home-link">⬅ Dashboard</a>
+    </header>
+
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <div class="search-wrapper">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search formulas (e.g. Circle, Quadratic, Sin)..." onkeyup="filterFormulas()">
+        <i class="fas fa-search search-icon"></i>
+    </div>
+
+    <div id="formula-grid" class="grid">
+        </div>
+
+    <script>
+        // --- 1. GLOBAL DARK MODE SYNC ---
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        // --- 2. FORMULA DATABASE ---
+        const mathDB = [
+            { id: 'area_circle', title: "Area of Circle", eq: "A = πr²", desc: "Calculate space inside a circle.", inputs: ["Radius (r)"] },
+            { id: 'pythagoras', title: "Pythagoras Theorem", eq: "a² + b² = c²", desc: "Find hypotenuse of right triangle.", inputs: ["Side A", "Side B"] },
+            { id: 'quadratic', title: "Quadratic Formula", eq: "x = (-b ± √D) / 2a", desc: "Solve ax² + bx + c = 0", inputs: ["a", "b", "c"] },
+            { id: 'simple_interest', title: "Simple Interest", eq: "SI = (P × R × T) / 100", desc: "Calculate loan interest.", inputs: ["Principal (P)", "Rate (R)", "Time (T)"] },
+            { id: 'speed', title: "Speed", eq: "S = D / T", desc: "Calculate speed from distance and time.", inputs: ["Distance", "Time"] },
+            { id: 'bmi', title: "BMI Calculator", eq: "kg / m²", desc: "Body Mass Index (Health).", inputs: ["Weight (kg)", "Height (m)"] },
+            { id: 'vol_cube', title: "Volume of Cube", eq: "V = a³", desc: "Space inside a box.", inputs: ["Side (a)"] },
+            { id: 'trig_sin', title: "Sine Rule", eq: "a/sinA = b/sinB", desc: "Triangle calculations.", inputs: ["None (Info Only)"] }
+        ];
+
+        // --- 3. RENDER ENGINE ---
+        const grid = document.getElementById('formula-grid');
+
+        function render(data) {
+            grid.innerHTML = '';
+            data.forEach(item => {
+                let btnText = item.inputs[0].includes("None") ? "ℹ️ View Info" : "⚡ Solve Now";
+                let action = item.inputs[0].includes("None") ? `alert('${item.title}: ${item.eq}')` : `solve('${item.id}')`;
+                
+                grid.innerHTML += `
+                    <div class="card">
+                        <div class="f-title">${item.title}</div>
+                        <div class="f-eq">${item.eq}</div>
+                        <div class="f-desc">${item.desc}</div>
+                        <button class="solve-btn" onclick="${action}">${btnText}</button>
+                    </div>
+                `;
+            });
+        }
+        render(mathDB); // Initial Load
+
+        // --- 4. SEARCH ENGINE ---
+        function filterFormulas() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = mathDB.filter(item => 
+                item.title.toLowerCase().includes(query) || 
+                item.desc.toLowerCase().includes(query) ||
+                item.eq.toLowerCase().includes(query)
+            );
+            render(filtered);
+        }
+
+        // --- 5. SOLVER ENGINE (Calculator Logic) ---
+        function solve(id) {
+            // Simple Prompt-based solver for now (Can be upgraded to Modal)
+            if (id === 'area_circle') {
+                let r = prompt("Enter Radius (r):");
+                if(r) alert("Area = " + (Math.PI * r * r).toFixed(2));
+            }
+            else if (id === 'pythagoras') {
+                let a = prompt("Enter Side A:");
+                let b = prompt("Enter Side B:");
+                if(a && b) alert("Hypotenuse (c) = " + Math.sqrt(a*a + b*b).toFixed(2));
+            }
+            else if (id === 'simple_interest') {
+                let p = prompt("Principal Amount:");
+                let r = prompt("Rate (%):");
+                let t = prompt("Time (years):");
+                if(p && r && t) alert("Interest = " + (p*r*t)/100);
+            }
+            else if (id === 'speed') {
+                let d = prompt("Distance:");
+                let t = prompt("Time:");
+                if(d && t) alert("Speed = " + (d/t).toFixed(2));
+            }
+            else {
+                alert("This calculator is being upgraded! Try Circle or Pythagoras.");
+            }
+        }
+
+        // --- TRANSLATE INIT ---
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,bn,te,mr'}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>
