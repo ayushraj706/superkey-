@@ -1,20 +1,16 @@
 import { Resend } from 'resend';
-
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
-    
     const { email, otp } = req.body;
     try {
         const data = await resend.emails.send({
-            from: 'BaseKey <onboarding@resend.dev>', // Resend Dashboard mein Domain verify karne ke baad ise badal sakte hain
+            // यहाँ 'otp@ayus.fun' या 'care@ayus.fun' डालें
+            from: 'BaseKey <otp@ayus.fun>', 
             to: email,
-            subject: 'Login OTP for BaseKey',
-            html: `<p>Your access code is: <strong>${otp}</strong></p>`
+            subject: 'Your 6-Digit OTP',
+            html: `<strong>आपका कोड है: ${otp}</strong>`
         });
-        return res.status(200).json(data);
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
+        res.status(200).json(data);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 }
